@@ -1,7 +1,10 @@
 # HolyScript
-<div align = center>
-<a href = "https://github.com/IITGN-CS327-2024/our-own-compiler-holyscript"><img width="417px" height="250px" src= "https://github.com/IITGN-CS327-2024/our-own-compiler-holyscript/blob/main/hs.png"></a>
+<div align="center">
+  <a href="https://github.com/IITGN-CS327-2024/our-own-compiler-holyscript">
+    <img width="50%" src="https://github.com/IITGN-CS327-2024/our-own-compiler-holyscript/blob/main/hs.png">
+  </a>
 </div>
+
 ## Introduction
 HolyScript is a strongly typed, interpretive programming language designed with a unique thematic twist, drawing inspiration from biblical terminology. Aimed at making the learning process more engaging and memorable, HolyScript introduces an innovative syntax and programming concepts that are both educational and fun. Whether you're a beginner looking to understand programming fundamentals or an experienced developer seeking a new perspective, HolyScript offers a fresh and enlightening experience.
 
