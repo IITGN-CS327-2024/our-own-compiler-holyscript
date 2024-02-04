@@ -59,9 +59,6 @@ class ListToken:
 class Whitespace:
     value: str
 
-# Define the token type as a union
-Token = Union[Num, Bool, Keyword, Identifier, Operator, Symbols, StringToken, ListToken, Whitespace]
-
 @dataclass
 class Stream:
     source: str
