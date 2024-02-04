@@ -89,6 +89,21 @@ class Stream:
         assert self.pos > 0
         self.pos -= 1
 
+def word_to_token(word):
+    if word in keywords:
+        return Keyword(word)
+    if word == "True":
+        return Bool(True)
+    if word == "False":
+        return Bool(False)
+    if word in symbolic_operators:
+        return Operator(word)
+    if word in symbols:
+        return Symbols(word)
+    if word in whitespace:
+        return Whitespace(word)
+    return Identifier(word)
+
 
 @dataclass
 class Lexer:
