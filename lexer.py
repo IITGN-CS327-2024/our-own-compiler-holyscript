@@ -21,12 +21,16 @@ tuple_utils = "length".split()  # Assuming you might want to access parts but no
 r = RuntimeEnvironment()
 
 # Token Definitions
-Token = Num | Bool | Keyword | Identifier | Operator | Symbols | StringToken | ListToken | Whitespace
+Token = Int | Float | Bool | Keyword | Identifier | Operator | Symbols | StringToken | ListToken | Whitespace
 
 @dataclass
-class Num:
-    value: Union[int, float]
+class Int:
+    value: Int
 
+@dataclass
+class Float:
+    value: Float
+  
 @dataclass
 class Bool:
     value: bool
