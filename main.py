@@ -27,8 +27,10 @@ def run_script(text, file_path):
     if error:
         print(error.as_string())
     else:
-        for token in tokens:
-            print(token)
+        values = [str(token) for token in tokens]
+
+        # Print the values separated by commas
+        print(", ".join(values))
 
 def is_holy_script_file(file_path):
     return os.path.isfile(file_path) and file_path.endswith('.holy')
@@ -53,8 +55,10 @@ Type 'exit' to depart.
         if error:
             print(error.as_string())
         else:
-            for token in tokens:
-                print(token)
+            values = [str(token) for token in tokens]
+
+            # Print the values separated by commas
+            print(", ".join(values))
 
 if __name__ == "__main__":
     if len(sys.argv) == 2:
