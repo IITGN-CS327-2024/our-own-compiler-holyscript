@@ -8,7 +8,6 @@ from typing import Optional, NewType, Union, List
 DIGITS = '0123456789'
 keywords = "be eternal belief else chant pledge oath preach invoke deliver persist retreat trial mercy condemn unite slice".split(
 )
-blockmarkers = "summon HolyScript doom".split()
 booleans = "myth truth".split()
 type_keywords = "int float char bool str".split()
 whitespace = [" ", "\n", "\f", "\t", "\r", "\v"]
@@ -95,11 +94,6 @@ class Bool:
 @dataclass
 class EndOfStatement:
   value: str
-  
-@dataclass
-class BlockMarkers:
-  value: str
-
 
 @dataclass
 class Keyword:
@@ -149,7 +143,7 @@ class CharToken:
 
 
 Token = Union[Int, Float, Bool, Keyword, Identifier, Operator, Symbols,
-              StringToken, ListToken, Whitespace, CharToken, BlockMarkers]
+              StringToken, ListToken, Whitespace, CharToken]
 
 
 class Token:
@@ -213,7 +207,7 @@ class Lexer:
   def make_tokens(self):
     tokens = []
     while self.current_char is not None:
-      if self.current_char in ' \t':
+      if self.current_char in whitespace:
         self.advance()
       elif self.current_char in DIGITS:
         tokens.append(self.make_number())
@@ -235,9 +229,9 @@ class Lexer:
         self.advance()
       elif self.current_char == "'":
         tokens.append(self.make_char())  # Handle character literals
-      elif self.current_char == '\n': # Handle newlines
-        # tokens.append(Whitespace('\n'))
-        self.advance()
+      # elif self.current_char == '\n': # Handle newlines, not necessary since focus is semicolons
+      #   tokens.append(Whitespace('\n'))
+      #   self.advance()
       else:
         # Handle identifiers or keywords
         if self.current_char.isalpha():
@@ -312,8 +306,6 @@ class Lexer:
       return Keyword(identifier_str)
     elif identifier_str in booleans:
       return Bool(identifier_str.lower() == 'truth')
-    elif identifier_str in blockmarkers:
-      return BlockMarkers(identifier_str)
     elif identifier_str in type_keywords:
       return TypeKeyword(identifier_str)
   # Check if the identifier is a utility function (list, array, tuple utilities combined)
