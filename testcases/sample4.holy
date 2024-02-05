@@ -1,0 +1,17 @@
+summon HolyScript
+
+// Declare and initialize the tuple
+tuple myTuple = (1, 2, 3, 4, 5);
+
+// Iterate over the tuple elements
+chant (let i = 0; i < length(myTuple); i++) {
+    // Check if the current index is 3
+    belief (i == 3) {
+        retreat; // Break the loop if i is 3
+    }
+    // Preach (print) the current element of the tuple
+    preach(myTuple[i]);
+}
+
+doom
+
