@@ -1,197 +1,359 @@
 from fractions import Fraction
 from dataclasses import dataclass
-from typing import Optional, NewType, Union
-from utils.errors import EndOfStream, EndOfTokens, TokenError, StringError, ListOpError
-from utils.datatypes import Num, Bool, Keyword, Symbols, ListUtils, Identifier, StringToken, ListToken, Operator, Whitespace, NumLiteral, BinOp, UnOp, Variable, Let, Assign, If, BoolLiteral, UnOp, ASTSequence, AST, Buffer, ForLoop, Range, Declare, While, DoWhile, Print, funct_call, funct_def, funct_ret, StringLiteral, StringSlice, ListObject, ListCons, ListOp, ListIndex
-from core import RuntimeEnvironment
+from typing import Optional, NewType, Union, List
+#######################################
+# CONSTANTS
+#######################################
 
-
-keywords = "summon doom eternal belief else chant pledge oath preach invoke deliver persist retreat trial mercy condemn unite slice".split()
-type_keywords = "int float double char bool str".split()
-
-symbolic_operators = "+ - * / < > <= >= == != && || ! ?".split()  # Assuming &&, ||, ! as logical and, or, not
-# word_operators = "and or not".split()  # Commented out because we've not mentioned this in our documentation yet, will likely not implement
+DIGITS = '0123456789'
+keywords = "be eternal belief else chant pledge oath preach invoke deliver persist retreat trial mercy condemn unite slice".split(
+)
+blockmarkers = "summon HolyScript doom".split()
+booleans = "myth truth".split()
+type_keywords = "int float char bool str".split()
 whitespace = [" ", "\n", "\f", "\t", "\r", "\v"]
-symbols = "; , ( ) { } [ ] ' \" .".split()
+symbols = ", ( ) { } [ ] : ' \" .".split()
 
 list_utils = "cons head tail append insert remove length".split()
 array_utils = "head append remove length".split()
-tuple_utils = "length".split()  # Assuming you might want to access parts but not modify
+tuple_utils = "length".split()
 
-r = RuntimeEnvironment()
+endofstmt=";".split()
+symbolic_operators = "+ - * / < > <= >= == != && || ! ? =".split()
 
-# Token Definitions
-Token = Int | Float | Bool | Keyword | Identifier | Operator | Symbols | StringToken | ListToken | Whitespace
+#######################################
+# ERRORS
+#######################################
 
+
+class Error:
+    def __init__(self, pos_start, pos_end, error_name, details):
+        self.pos_start = pos_start
+        self.pos_end = pos_end
+        self.error_name = error_name
+        self.details = details
+        # Automatically print the error details upon instantiation
+        print(self.as_string())
+
+    def as_string(self):
+        result = f'{self.error_name}: {self.details}\n'
+        result += f'File {self.pos_start.fn}, line {self.pos_start.ln + 1}'
+        return result
+
+class IllegalCharError(Error):
+    def __init__(self, pos_start, pos_end, details):
+        super().__init__(pos_start, pos_end, 'Illegal Character', details)
+        # No need to add a print statement here since it's already in the parent class
+
+
+
+#######################################
+# POSITION
+#######################################
+
+
+class Position:
+
+  def __init__(self, idx, ln, col, fn, ftxt):
+    self.idx = idx
+    self.ln = ln
+    self.col = col
+    self.fn = fn  #filename
+    self.ftxt = ftxt  #filetext
+
+  def advance(self, current_char):
+    self.idx += 1
+    self.col += 1
+
+    if current_char == '\n':
+      self.ln += 1
+      self.col = 0
+
+    return self
+
+  def copy(self):
+    return Position(self.idx, self.ln, self.col, self.fn, self.ftxt)
+
+
+#######################################
+# TOKENS
+#######################################
 @dataclass
 class Int:
-    value: Int
+  value: int
+
 
 @dataclass
 class Float:
-    value: Float
-  
+  value: float
+
+
 @dataclass
 class Bool:
-    value: bool
+  value: bool
+
+@dataclass
+class EndOfStatement:
+  value: str
+  
+@dataclass
+class BlockMarkers:
+  value: str
+
 
 @dataclass
 class Keyword:
-    value: str
+  value: str
+
 
 @dataclass
 class Identifier:
-    name: str
+  name: str
+
 
 @dataclass
 class Operator:
-    value: str
+  value: str
+
 
 @dataclass
 class Symbols:
-    value: str
+  value: str
+
 
 @dataclass
 class StringToken:
-    value: str
+  value: str
+
 
 @dataclass
 class ListToken:
-    elements: list
+  elements: list
 
 @dataclass
 class Whitespace:
+  value: str
+
+@dataclass
+class TypeKeyword:
     value: str
 
 @dataclass
-class Stream:
-    source: str
-    pos: int
-
-    def from_string(string: str, position: int = 0):
-        """
-        Creates a stream from a string. Position reset to 0.
-        """
-        return Stream(string, position)
-
-    def next_char(self):
-        """
-        Returns the next character in the stream.
-        """
-        if self.pos >= len(self.source):
-            raise EndOfStream()
-        self.pos += 1
-        return self.source[self.pos - 1]
-
-    def unget(self):
-        """
-        Moves the stream back one character.
-        """
-        assert self.pos > 0
-        self.pos -= 1
-
-def word_to_token(word):
-    if word in keywords:
-        return Keyword(word)
-    if word == "True":
-        return Bool(True)
-    if word == "False":
-        return Bool(False)
-    if word in symbolic_operators:
-        return Operator(word)
-    if word in symbols:
-        return Symbols(word)
-    if word in whitespace:
-        return Whitespace(word)
-    return Identifier(word)
+class UtilityFunction:
+    value: str
 
 
 @dataclass
+class CharToken:
+  value: str
+
+
+Token = Union[Int, Float, Bool, Keyword, Identifier, Operator, Symbols,
+              StringToken, ListToken, Whitespace, CharToken, BlockMarkers]
+
+
+class Token:
+
+  def __init__(self, type_, value=None):
+    self.type = type_
+    self.value = value
+
+  def __repr__(self):
+    if self.value: return f'{self.type}:{self.value}'
+    return f'{self.type}'
+
+
+#######################################
+# LEXER
+#######################################
+
+
 class Lexer:
-    stream: Stream
-    save: Token = None
 
-    def from_stream(s):
-        return Lexer(s)
+  def __init__(self, fn, text):
+    self.fn = fn
+    self.text = text
+    self.pos = Position(-1, 0, -1, fn, text)
+    self.current_char = None
+    self.advance()
+    self.single_char_tokens, self.double_char_tokens = self.generate_token_mappings(
+    )
 
-    def next_token(self) -> Token:
-        try:
-            match self.stream.next_char():
-                case c if c.isdigit():
-                    n = int(c)
-                    # Handle different bases.
-                    while True:
-                        try:
-                            c = self.stream.next_char()
-                            if c.isdigit():
-                                n = n * 10 + int(c)
-                            else:
-                                self.stream.unget()
-                                return Num(n)
-                        except EndOfStream:
-                            return Num(n)
+  def advance(self):
+    self.pos.advance(self.current_char)
+    self.current_char = self.text[self.pos.idx] if self.pos.idx < len(
+        self.text) else None
 
-                case c if c.isalpha():
-                    s = c
-                    while True:
-                        try:
-                            c = self.stream.next_char()
-                            if c.isalnum():
-                                s += c
-                            else:
-                                self.stream.unget()
-                                if s in keywords:
-                                    return Keyword(s)
-                                return Identifier(s)
-                        except EndOfStream:
-                            if s in keywords:
-                                return Keyword(s)
-                            return Identifier(s)
+  def peek(self):
+    """Peek at the next character without consuming it."""
+    peek_pos = self.pos.idx + 1
+    if peek_pos < len(self.text):
+      return self.text[peek_pos]
+    else:
+      return ''  # Return an empty string instead of None
 
-                case c if c in '+-*/<>=!':
-                    return Operator(c)
+  def generate_token_mappings(self):
+    single_char_tokens = {}
+    double_char_tokens = {}
 
-                case c if c in ";,(){}[]'\".":
-                    return Symbols(c)
+    # Populate the mappings for symbolic operators
+    for op in symbolic_operators:
+      if len(op) == 1:
+        single_char_tokens[op] = Operator(op)
+      elif len(op) == 2:
+        double_char_tokens[op] = Operator(op)
 
-                case c if c in ' \n':
-                    return Whitespace(c)
+    # Adding symbols to single_char_tokens as needed
+    for sym in symbols:
+      if len(sym) == 1:
+        single_char_tokens[sym] = Symbols(sym)
 
-        except EndOfStream:
-            raise EndOfTokens()
+    return single_char_tokens, double_char_tokens
 
-    def peek_token(self):
-        """
-        Peeks at the next token, but doesn't advance the stream.
-        """
-        if self.save is not None:
-            return self.save
-        self.save = self.next_token()
-        return self.save
-
-    def match(self, expected):
-        """
-        Matches the next token to the expected token.
-        """
-        if self.peek_token() == expected:
-            return self.advance()
+  def make_tokens(self):
+    tokens = []
+    while self.current_char is not None:
+      if self.current_char in ' \t':
+        self.advance()
+      elif self.current_char in DIGITS:
+        tokens.append(self.make_number())
+      elif self.current_char == ';':
+        tokens.append(EndOfStatement(';'))
+        self.advance()
+      elif self.current_char == '/' and self.peek(
+      ) == '/':  # Detecting start of a comment
+        self.skip_comment()
+      elif self.current_char == '"':
+        tokens.append(self.make_string())  # Handle string literals
+      elif self.current_char + self.peek() in self.double_char_tokens:
+        double_char = self.current_char + self.peek()
+        tokens.append(self.double_char_tokens[double_char])
+        self.advance()  # Advance past the first character
+        self.advance()  # Advance past the second character
+      elif self.current_char in self.single_char_tokens:
+        tokens.append(self.single_char_tokens[self.current_char])
+        self.advance()
+      elif self.current_char == "'":
+        tokens.append(self.make_char())  # Handle character literals
+      elif self.current_char == '\n': # Handle newlines
+        # tokens.append(Whitespace('\n'))
+        self.advance()
+      else:
+        # Handle identifiers or keywords
+        if self.current_char.isalpha():
+          tokens.append(self.make_identifier())
         else:
-            raise TokenError(f"Expected {expected}, got {self.peek_token()}")
+          pos_start = self.pos.copy()
+          char = self.current_char
+          self.advance()
+          error = IllegalCharError(pos_start, self.pos, "Unable to identify character: " + char)
+          return [], error  # Return an empty list and the error object
+    return tokens, None
 
-    def advance(self):
-        """
-        Advances the stream by one token.
-        """
-        assert self.save is not None
-        self.save = None
+  def skip_comment(self):
+    while self.current_char is not None and self.current_char != '\n':
+      self.advance()
+    self.advance(
+    )  # Optional: Skip the newline character as well, if you want to ignore it
 
-    def __iter__(self):
-        return self
+  def make_string(self):
+      string_val = ''
+      self.advance()  # Skip the opening quote
 
-    def __next__(self):
-        try:
-            self.curr_token = self.next_token()
-            return self.curr_token
-        except EndOfTokens:
-            raise StopIteration
+      while self.current_char is not None and self.current_char != '"':
+          if self.current_char == '\\':
+              self.advance()  # Handle escape sequences if necessary
+              if self.current_char == 'n':
+                  string_val += '\n'
+              elif self.current_char == '"':
+                  string_val += '"'
+              # Add other escape sequences as needed
+          else:
+              string_val += self.current_char
+          self.advance()
 
+      if self.current_char != '"':
+          # Handle unterminated string error
+          return None, IllegalCharError(self.pos.copy(), self.pos, "Expected '\"' at the end of string")
+      
+      self.advance()  # Consume the closing quote
+      return StringToken(string_val), None
+    
+  def extract_identifier(self):
+    identifier_str = ''
+    while self.current_char is not None and (self.current_char.isalnum() or self.current_char == '_'):
+      identifier_str += self.current_char
+      self.advance()
+    return identifier_str
+  
+  def make_char(self):
+    self.advance()  # Consume the opening quote
+    char_val = self.current_char  # Assign the character value
+    pos_start = self.pos.copy()
+    self.advance()  # Move to the next character
+
+    if self.current_char != "'":
+      return None, IllegalCharError(
+          pos_start, self.pos,
+          "Character literals must be single characters enclosed in single quotes"
+      )
+    self.advance()  # Consume the closing quote
+    return CharToken(char_val), None
+
+  def make_identifier(self):
+    identifier_str = ''
+
+    while self.current_char is not None and (self.current_char.isalnum()
+                                             or self.current_char == '_'):
+      identifier_str += self.current_char
+      self.advance()
+    # Check if the identifier is a keyword or a regular identifier
+    if identifier_str in keywords:
+      return Keyword(identifier_str)
+    elif identifier_str in booleans:
+      return Bool(identifier_str.lower() == 'truth')
+    elif identifier_str in blockmarkers:
+      return BlockMarkers(identifier_str)
+    elif identifier_str in type_keywords:
+      return TypeKeyword(identifier_str)
+  # Check if the identifier is a utility function (list, array, tuple utilities combined)
+    elif identifier_str in list_utils + array_utils + tuple_utils:
+        return UtilityFunction(identifier_str)
+    else:
+      return Identifier(identifier_str)
+
+  def make_number(self):
+      num_str = ''
+      dot_count = 0
+      pos_start = self.pos.copy()  # Remember the start of the number for error reporting
+
+      while self.current_char is not None and (self.current_char.isdigit() or self.current_char == '.'):
+          if self.current_char == '.':
+              dot_count += 1
+              num_str += '.'
+          else:
+              num_str += self.current_char
+          self.advance()
+      if dot_count > 1:  # After exiting the loop, check if we encountered more than one dot
+          return [], IllegalCharError(pos_start, self.pos, f"Multiple decimal points found in number '{num_str}'")
+      elif dot_count == 0:
+          return Int(int(num_str))
+      else:
+          return Float(float(num_str))
+
+
+
+########## Lists, tuples and arrays #############
+
+###################################################
+# add for identifying string literals, list literals, tuple literals, and array literals.
+#######################################
+# RUN
+#######################################
+
+
+def run(fn, text):
+  lexer = Lexer(fn, text)
+  tokens, error = lexer.make_tokens()
+
+  return tokens, error
