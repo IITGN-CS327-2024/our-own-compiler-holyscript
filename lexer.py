@@ -229,9 +229,6 @@ class Lexer:
         self.advance()
       elif self.current_char == "'":
         tokens.append(self.make_char())  # Handle character literals
-      # elif self.current_char == '\n': # Handle newlines, not necessary since focus is semicolons
-      #   tokens.append(Whitespace('\n'))
-      #   self.advance()
       else:
         # Handle identifiers or keywords
         if self.current_char.isalpha():
@@ -332,20 +329,43 @@ class Lexer:
           return Int(int(num_str))
       else:
           return Float(float(num_str))
+      
 
-
-
-########## Lists, tuples and arrays #############
-
-###################################################
-# add for identifying string literals, list literals, tuple literals, and array literals.
-#######################################
-# RUN
-#######################################
-
+  
+def print_tokens(tokens):
+  for token in tokens:
+      if isinstance(token, Int):
+          print(f"Integer: {token.value}")
+      elif isinstance(token, Float):
+          print(f"Float: {token.value}")
+      elif isinstance(token, Bool):
+          print(f"Boolean: {token.value}")
+      elif isinstance(token, Keyword):
+          print(f"Keyword: {token.value}")
+      elif isinstance(token, Identifier):
+          print(f"Identifier: {token.name}")
+      elif isinstance(token, Operator):
+          print(f"Operator: {token.value}")
+      elif isinstance(token, Symbols):
+          print(f"Symbol: {token.value}")
+      elif isinstance(token, StringToken):
+          print(f"String: {token.value}")
+      elif isinstance(token, ListToken):
+          print(f"List: {token.elements}")
+      elif isinstance(token, TypeKeyword):
+          print(f"Type Keyword: {token.value}")
+      elif isinstance(token, UtilityFunction):
+          print(f"Utility Function: {token.value}")
+      elif isinstance(token, CharToken):
+          print(f"Character: {token.value}")
+      elif isinstance(token, EndOfStatement):
+          print(f"End of Statement: {token.value}")
+      else:
+          print("Unknown Token")
 
 def run(fn, text):
   lexer = Lexer(fn, text)
   tokens, error = lexer.make_tokens()
 
   return tokens, error
+ 
