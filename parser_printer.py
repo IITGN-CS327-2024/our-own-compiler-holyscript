@@ -56,7 +56,7 @@ Type 'exit' to depart.
             print("Tokens:")
             lexer.print_tokens(tokens)
 
-if __name__ == "__main__":
+if __name__ == "__parser_printer__":
     if len(sys.argv) == 2:
         file_path = sys.argv[1]
         if is_holy_script_file(file_path):
