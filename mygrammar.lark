@@ -10,148 +10,122 @@ statement: compound_statement
          | list_declaration
          | array_declaration 
          | function_definition
-         | function_call
 
-tuple_declaration: "tuple" identifier "=" "(" value_list ")" ";" 
+tuple_declaration: "TypeKeyword(value='tuple')" "IDENTIFIER" "Operator(value='=')" "Symbols(value='(')" assignment_expression value_list "Symbols(value=')')" "ENDOFSTMT" 
 
-list_declaration: "list" identifier "=" "[" value_list "]" ";" 
+list_declaration: "TypeKeyword(value='list')" "IDENTIFIER" "Operator(value='=')" "Symbols(value='[')" value_list "Symbols(value=']')" "ENDOFSTMT" 
 
-value_list: assignment_expression ("," assignment_expression)* 
+value_list: ("Symbols(value=',')" assignment_expression)* 
 
-compound_statement: "{" declaration* statement* "}"
+compound_statement: "Symbols(value='{')" declaration* statement* "Symbols(value='}')"
 
-declaration: declaration_specifier init_declarator_list ";"
+declaration: declaration_specifier? assignment_expression "ENDOFSTMT"
+        | array_declaration "ENDOFSTMT"
 
-init_declarator_list: init_declarator ("," init_declarator)*
+declaration_specifier: "Keyword(value='eternal')"? type_specifier
 
-init_declarator: declarator ("=" assignment_expression)?
+type_specifier: "TypeKeyword(value='void')"
+              | "TypeKeyword(value='char')"
+              | "TypeKeyword(value='int')"
+              | "TypeKeyword(value='float')"
+              | "TypeKeyword(value='bool')"
 
-declarator: pointer? direct_declarator
+preach_statement: "Keyword(value='preach')" "Symbols(value='(')" expression "Symbols(value=')')" "ENDOFSTMT"
 
-direct_declarator: identifier
-                | "(" declarator ")"
-                | direct_declarator "[" constant "]"
-                | direct_declarator "[" "]"
-                | direct_declarator "(" parameter_list ")"
-                | direct_declarator "++"
-                | direct_declarator "--"
+selection_statement: "Keyword(value='belief')" "Symbols(value='(')" expression "Symbols(value=')')" statement
+                   | "Keyword(value='belief')" "Symbols(value='(')" expression "Symbols(value=')')" statement "Keyword(value='else')" statement
 
-declaration_specifier: type_qualifier? type_specifier
+iteration_statement: "Keyword(value='pledge')" "Symbols(value='(')" expression "Symbols(value=')')" statement
+                   | "Keyword(value='oath')" statement "Keyword(value='pledge')" "Symbols(value='(')" expression "Symbols(value=')')" "ENDOFSTMT"
+                   | "Keyword(value='chant')" "Symbols(value='(')" declaration_specifier? assignment_expression "ENDOFSTMT" expression? "ENDOFSTMT" expression? "Symbols(value=')')" statement 
 
-type_qualifier: "eternal"
+jump_statement: "Keyword(value='persist')" "ENDOFSTMT"
+              | "Keyword(value='retreat')" "ENDOFSTMT"
+              | "Keyword(value='deliver')" expression? "ENDOFSTMT"
 
-type_specifier: "void"
-              | "char"
-              | "int"
-              | "float"
+assignment_expression:  expression
+                      | postfix_expression assignment_operator assignment_expression
 
-preach_statement: "preach" "(" (expression | string) ")" ";"
+assignment_operator: "Operator(value='=')"
+                   | "Operator(value='*=')"
+                   | "Operator(value='/=')"
+                   | "Operator(value='%=')"
+                   | "Operator(value='+=')"
+                   | "Operator(value='-=')"
 
-
-
-selection_statement: "belief" "(" expression ")" statement
-                   | "belief" "(" expression ")" statement "else" statement
-
-iteration_statement: "pledge" "(" expression ")" statement
-                   | "oath" statement "pledge" "(" expression ")" 
-                   | "chant" "(" declaration? assignment_expression? ";" expression? ")" statement 
-
-jump_statement: "persist" ";"
-              | "retreat" ";"
-              | "deliver" expression? ";"
-
-assignment_expression: conditional_expression
-                     | unary_expression assignment_operator assignment_expression
-
-assignment_operator: "="
-                   | "*="
-                   | "/="
-                   | "%="
-                   | "+="
-                   | "-="
-                   | "&="
-                   | "^="
-                   | "|="
-
-unary_operator: "&"
-              | "*"
-              | "+"
-              | "-"
-              | "!"
-
-expression: conditional_expression 
-          | string
-
-conditional_expression: logical_or_expression
-                      | logical_or_expression "?" expression ":" conditional_expression
+expression: logical_or_expression
 
 logical_or_expression: logical_and_expression
-                     | logical_or_expression "||" logical_and_expression
+                     | logical_or_expression "Operator(value='||')" logical_and_expression
 
-logical_and_expression: inclusive_or_expression
-                      | logical_and_expression "&&" inclusive_or_expression
-
-inclusive_or_expression: exclusive_or_expression
-                        | inclusive_or_expression "|" exclusive_or_expression
-
-exclusive_or_expression: and_expression
-                       | exclusive_or_expression "^" and_expression
+logical_and_expression: and_expression
+                      | logical_and_expression "Operator(value='&&')" and_expression
 
 and_expression: equality_expression
-              | and_expression "&" equality_expression
+              | and_expression "Operator(value='&')" equality_expression
 
 equality_expression: relational_expression
-                    | equality_expression "==" relational_expression
-                    | equality_expression "!=" relational_expression
+                    | equality_expression "Operator(value='==')" relational_expression
+                    | equality_expression "Operator(value='!=')" relational_expression
 
 relational_expression: additive_expression
-                     | relational_expression "<" additive_expression
-                     | relational_expression ">" additive_expression
-                     | relational_expression "<=" additive_expression
-                     | relational_expression ">=" additive_expression
+                     | relational_expression "Operator(value='<')" additive_expression
+                     | relational_expression "Operator(value='>')" additive_expression
+                     | relational_expression "Operator(value='<=')" additive_expression
+                     | relational_expression "Operator(value='>=')" additive_expression
 
 additive_expression: multiplicative_expression
-                   | additive_expression "+" multiplicative_expression
-                   | additive_expression "-" multiplicative_expression
+                   | additive_expression "Operator(value='+')" multiplicative_expression
+                   | additive_expression "Operator(value='-')" multiplicative_expression
 
-multiplicative_expression: unary_expression
-                         | multiplicative_expression "*" unary_expression
-                         | multiplicative_expression "/" unary_expression
-                         | multiplicative_expression "%" unary_expression
+multiplicative_expression: postfix_expression
+                         | multiplicative_expression "Operator(value='*')" postfix_expression
+                         | multiplicative_expression "Operator(value='/')" postfix_expression
+                         | multiplicative_expression "Operator(value='%')" postfix_expression
 
-unary_expression: postfix_expression
-                | "++" unary_expression
-                | "--" unary_expression
+postfix_expression: function_call 
+                  | postfix_expression "Operator(value='++')"
+                  | postfix_expression "Operator(value='--')"
+                  | primary_expression
 
-postfix_expression: primary_expression
-                  | postfix_expression "[" expression "]"
-                  | postfix_expression "(" assignment_expression* ")"
-                  | postfix_expression "++"
-                  | postfix_expression "--"
-                  | function_call
+primary_expression: "IDENTIFIER"
+                  | "INTEGER"
+                  | "FLOAT"
+                  | "STRING"
+                  | "BOOLEAN"
+                  | "Symbols(value='(')" expression "Symbols(value=')')"
+                  | "IDENTIFIER" "Symbols(value='.')" list_op 
+                  | "IDENTIFIER" "Symbols(value='.')" tuple_op
+                  | "IDENTIFIER" "Symbols(value='.')'" array_op
+                  | "IDENTIFIER" "Symbols(value='[')" "IDENTIFIER" "Symbols(value=']')"  
 
-primary_expression: identifier
-                  | constant
-                  | string
-                  | "(" expression ")" 
+list_op: "UtilityFunction(value='head')" "ENDOFSTMT"
+        | "UtilityFunction(value='tail')" "ENDOFSTMT"
+        | "UtilityFunction(value='length')"
+        | "UtilityFunction(value='cons')" "Symbols(value='(')" expression "Symbols(value=')')" "ENDOFSTMT"
+        | "UtilityFunction(value='append')" "Symbols(value='(')" expression "Symbols(value=')')" "ENDOFSTMT"
+        | "UtilityFunction(value='insert')" "Symbols(value='(')" expression "Symbols(value=',')" expression "Symbols(value=')')" "ENDOFSTMT"
 
-function_definition: type_specifier "invoke" identifier "(" parameter_list ")" function_body
+tuple_op: "UtilityFunction(value='head')" "ENDOFSTMT"
+        | "UtilityFunction(value='tail')" "ENDOFSTMT"
+        | "UtilityFunction(value='cons')" "Symbols(value='(')" expression "Symbols(value=')')"
+        | "UtilityFunction(value='length')"
 
-parameter_list: (type_specifier identifier ("," type_specifier identifier)*)?
+array_op: "UtilityFunction(value='length')"
+        | "UtilityFunction(value='append')" "Symbols(value='(')" expression "Symbols(value=')')" "ENDOFSTMT"
+        | "UtilityFunction(value='remove')" "Symbols(value='(')" expression "Symbols(value=')')" "ENDOFSTMT"
+        | "Symbols(value='[')" expression "Symbols(value=']')"
 
-function_body: "{" (declaration | statement)* "}"
+function_definition: "Keyword(value='invoke')" type_specifier "IDENTIFIER" "Symbols(value='(')" parameter_list "Symbols(value=')')" function_body
 
-function_call: identifier "(" argument_list ")"
+parameter_list: (type_specifier "IDENTIFIER" ("Symbols(value=',')" type_specifier "IDENTIFIER")*)?
 
-argument_list: (assignment_expression ("," assignment_expression)*)?
+function_body: "Symbols(value='{')" (declaration | statement)* "Symbols(value='}')"
 
-array_declaration: "array" "<" type_specifier ">" identifier "=" "[" assignment_expression ("," assignment_expression)* "]" ";"
+function_call: "IDENTIFIER" "Symbols(value='(')" assignment_expression value_list "Symbols(value=')')" 
 
+array_declaration: "TypeKeyword(value='array')" "Operator(value='<')" type_specifier "Operator(value='>')" "IDENTIFIER" "Operator(value='=')" "Symbols(value='[')" expression ("Symbols(value=',') " expression)* "Symbols(value=']')" "ENDOFSTMT"
 
-identifier: LETTER (LETTER | DIGIT | "_")*
-constant: INT 
-        | FLOAT 
-string: ESCAPED_STRING
 
 %import common.LETTER
 %import common.DIGIT
@@ -159,5 +133,5 @@ string: ESCAPED_STRING
 %import common.INT 
 %import common.FLOAT
 %import common.ESCAPED_STRING
+%import common.WS
 %ignore WS
-WS: /[ \t\f\r\n]+/
