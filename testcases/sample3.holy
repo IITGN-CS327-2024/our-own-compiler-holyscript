@@ -15,7 +15,7 @@ invoke int calculateFactorial(int n) {
 
 int numberToCalculate = 5; // Change this to any positive integer
 
-invoke int factorialResult = calculateFactorial(numberToCalculate);
+int factorialResult = calculateFactorial(numberToCalculate);
 
 preach(factorialResult);
 
