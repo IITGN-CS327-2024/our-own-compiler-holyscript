@@ -6,19 +6,16 @@ from typing import Optional, NewType, Union, List
 #######################################
 
 DIGITS = '0123456789'
-keywords = "be eternal belief else chant pledge oath preach invoke deliver persist retreat trial mercy condemn unite slice".split(
-)
+keywords = "eternal belief else chant pledge oath preach invoke deliver persist retreat trial mercy condemn".split()
 booleans = "myth truth".split()
-type_keywords = "int float char bool str".split()
+type_keywords = "int float char bool str tuple list array".split()
 whitespace = [" ", "\n", "\f", "\t", "\r", "\v"]
 symbols = ", ( ) { } [ ] : ' \" .".split()
 
-list_utils = "cons head tail append insert remove length".split()
-array_utils = "head append remove length".split()
-tuple_utils = "length".split()
+utils = "cons head tail append insert remove length unite".split()
 
 endofstmt=";".split()
-symbolic_operators = "+ - * / < > <= >= == != && || ! ? =".split()
+symbolic_operators = "+ - * / < > <= >= == != && || ! ? = ++ -- *= %= /=".split()
 
 #######################################
 # ERRORS
@@ -102,7 +99,7 @@ class Keyword:
 
 @dataclass
 class Identifier:
-  name: str
+  value: str
 
 
 @dataclass
@@ -122,7 +119,7 @@ class StringToken:
 
 @dataclass
 class ListToken:
-  elements: list
+  value: list
 
 @dataclass
 class Whitespace:
@@ -137,13 +134,13 @@ class UtilityFunction:
     value: str
 
 
-@dataclass
-class CharToken:
-  value: str
+# @dataclass
+# class CharToken:
+#   value: str
 
 
 Token = Union[Int, Float, Bool, Keyword, Identifier, Operator, Symbols,
-              StringToken, ListToken, Whitespace, CharToken]
+              StringToken, ListToken, Whitespace] # , CharToken
 
 
 class Token:
@@ -229,6 +226,9 @@ class Lexer:
         self.advance()
       elif self.current_char == "'":
         tokens.append(self.make_char())  # Handle character literals
+      # elif self.current_char == '\n': # Handle newlines, not necessary since focus is semicolons
+      #   tokens.append(Whitespace('\n'))
+      #   self.advance()
       else:
         # Handle identifiers or keywords
         if self.current_char.isalpha():
@@ -268,7 +268,7 @@ class Lexer:
           return None, IllegalCharError(self.pos.copy(), self.pos, "Expected '\"' at the end of string")
       
       self.advance()  # Consume the closing quote
-      return StringToken(string_val), None
+      return StringToken(string_val)
     
   def extract_identifier(self):
     identifier_str = ''
@@ -277,19 +277,19 @@ class Lexer:
       self.advance()
     return identifier_str
   
-  def make_char(self):
-    self.advance()  # Consume the opening quote
-    char_val = self.current_char  # Assign the character value
-    pos_start = self.pos.copy()
-    self.advance()  # Move to the next character
+  # def make_char(self):
+  #   self.advance()  # Consume the opening quote
+  #   char_val = self.current_char  # Assign the character value
+  #   pos_start = self.pos.copy()
+  #   self.advance()  # Move to the next character
 
-    if self.current_char != "'":
-      return None, IllegalCharError(
-          pos_start, self.pos,
-          "Character literals must be single characters enclosed in single quotes"
-      )
-    self.advance()  # Consume the closing quote
-    return CharToken(char_val), None
+  #   if self.current_char != "'":
+  #     return None, IllegalCharError(
+  #         pos_start, self.pos,
+  #         "Character literals must be single characters enclosed in single quotes"
+  #     )
+  #   self.advance()  # Consume the closing quote
+  #   return CharToken(char_val)
 
   def make_identifier(self):
     identifier_str = ''
@@ -306,7 +306,7 @@ class Lexer:
     elif identifier_str in type_keywords:
       return TypeKeyword(identifier_str)
   # Check if the identifier is a utility function (list, array, tuple utilities combined)
-    elif identifier_str in list_utils + array_utils + tuple_utils:
+    elif identifier_str in utils:
         return UtilityFunction(identifier_str)
     else:
       return Identifier(identifier_str)
@@ -329,43 +329,20 @@ class Lexer:
           return Int(int(num_str))
       else:
           return Float(float(num_str))
-      
 
-  
-def print_tokens(tokens):
-  for token in tokens:
-      if isinstance(token, Int):
-          print(f"Integer: {token.value}")
-      elif isinstance(token, Float):
-          print(f"Float: {token.value}")
-      elif isinstance(token, Bool):
-          print(f"Boolean: {token.value}")
-      elif isinstance(token, Keyword):
-          print(f"Keyword: {token.value}")
-      elif isinstance(token, Identifier):
-          print(f"Identifier: {token.name}")
-      elif isinstance(token, Operator):
-          print(f"Operator: {token.value}")
-      elif isinstance(token, Symbols):
-          print(f"Symbol: {token.value}")
-      elif isinstance(token, StringToken):
-          print(f"String: {token.value}")
-      elif isinstance(token, ListToken):
-          print(f"List: {token.elements}")
-      elif isinstance(token, TypeKeyword):
-          print(f"Type Keyword: {token.value}")
-      elif isinstance(token, UtilityFunction):
-          print(f"Utility Function: {token.value}")
-      elif isinstance(token, CharToken):
-          print(f"Character: {token.value}")
-      elif isinstance(token, EndOfStatement):
-          print(f"End of Statement: {token.value}")
-      else:
-          print("Unknown Token")
+
+
+########## Lists, tuples and arrays #############
+
+###################################################
+# add for identifying string literals, list literals, tuple literals, and array literals.
+#######################################
+# RUN
+#######################################
+
 
 def run(fn, text):
   lexer = Lexer(fn, text)
   tokens, error = lexer.make_tokens()
 
   return tokens, error
- 
