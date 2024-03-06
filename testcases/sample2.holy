@@ -4,7 +4,7 @@ summon HolyScript
 array<int> numbers = [1, 3, 5, 7, 9];
 
 // Use a chant loop to iterate over the array and preach each number
-chant (int i = 0; i < length(numbers); i++) {
+chant (int i = 0; i < numbers.length; i++) {
     preach(numbers[i]);
 }
 
@@ -19,6 +19,6 @@ oath {
         retreat; // Exit the loop
     }
     j++;
-} pledge (j < length(numbers));
+} pledge (j < numbers.length);
 
 doom
