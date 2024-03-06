@@ -1,6 +1,13 @@
 import sys
 import os
 import lexer  
+from lark import Lark, Transformer, Tree
+
+# Load your grammar from the file
+with open('mygrammar.lark') as file:
+    grammar = file.read()
+parser = Lark(grammar, start='start', parser='earley')
+
 
 def read_holy_script_file(file_path):
     try:
@@ -27,12 +34,29 @@ def run_script(text, file_path):
     if error:
         print(error.as_string())
     else:
-        # values = [str(token) for token in tokens]
-
-        # # Print the values separated by commas
-        # print(", ".join(values))
-        concatenated_values = ' '.join(str(token.value) for token in tokens if token.value)
-        print(concatenated_values)
+            values = []
+            for token in tokens:
+                if isinstance(token, lexer.Identifier):
+                    # Just print "Identifier" for Identifier tokens
+                    values.append("IDENTIFIER")
+                elif isinstance(token, lexer.Int):
+                    values.append("INTEGER")
+                elif isinstance(token, lexer.Float):
+                    values.append("FLOAT")
+                elif isinstance(token, lexer.StringToken):
+                    values.append("STRING")
+                elif isinstance(token, lexer.Bool):
+                    values.append("BOOLEAN")
+                elif isinstance(token, lexer.EndOfStatement):
+                    values.append("ENDOFSTMT")
+                else:
+                    # Convert the token to a string for all other token types
+                    values.append(str(token))
+            # Print the values separated by commas
+            # print(" ".join(values))
+            script = (" ".join(values))
+            tree = parser.parse(script)
+            print(tree.pretty())
 
 def is_holy_script_file(file_path):
     return os.path.isfile(file_path) and file_path.endswith('.holy')
@@ -57,11 +81,29 @@ Type 'exit' to depart.
         if error:
             print(error.as_string())
         else:
-            values = [str(token) for token in tokens]
-
+            values = []
+            for token in tokens:
+                if isinstance(token, lexer.Identifier):
+                    # Just print "Identifier" for Identifier tokens
+                    values.append("IDENTIFIER")
+                elif isinstance(token, lexer.Int):
+                    values.append("INTEGER")
+                elif isinstance(token, lexer.Float):
+                    values.append("FLOAT")
+                elif isinstance(token, lexer.StringToken):
+                    values.append("STRING")
+                elif isinstance(token, lexer.Bool):
+                    values.append("BOOLEAN")
+                elif isinstance(token, lexer.EndOfStatement):
+                    values.append("ENDOFSTMT")
+                else:
+                    # Convert the token to a string for all other token types
+                    values.append(str(token))
             # Print the values separated by commas
-            print(", ".join(values))
-
+            # print(" ".join(values))
+            script = (" ".join(values))
+            tree = parser.parse(script)
+            print(tree.pretty())
 if __name__ == "__main__":
     if len(sys.argv) == 2:
         file_path = sys.argv[1]
