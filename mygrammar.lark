@@ -1,0 +1,163 @@
+?start: statement*
+
+statement: compound_statement
+         | selection_statement
+         | iteration_statement
+         | jump_statement
+         | preach_statement
+         | declaration 
+         | tuple_declaration
+         | list_declaration
+         | array_declaration 
+         | function_definition
+         | function_call
+
+tuple_declaration: "tuple" identifier "=" "(" value_list ")" ";" 
+
+list_declaration: "list" identifier "=" "[" value_list "]" ";" 
+
+value_list: assignment_expression ("," assignment_expression)* 
+
+compound_statement: "{" declaration* statement* "}"
+
+declaration: declaration_specifier init_declarator_list ";"
+
+init_declarator_list: init_declarator ("," init_declarator)*
+
+init_declarator: declarator ("=" assignment_expression)?
+
+declarator: pointer? direct_declarator
+
+direct_declarator: identifier
+                | "(" declarator ")"
+                | direct_declarator "[" constant "]"
+                | direct_declarator "[" "]"
+                | direct_declarator "(" parameter_list ")"
+                | direct_declarator "++"
+                | direct_declarator "--"
+
+declaration_specifier: type_qualifier? type_specifier
+
+type_qualifier: "eternal"
+
+type_specifier: "void"
+              | "char"
+              | "int"
+              | "float"
+
+preach_statement: "preach" "(" (expression | string) ")" ";"
+
+
+
+selection_statement: "belief" "(" expression ")" statement
+                   | "belief" "(" expression ")" statement "else" statement
+
+iteration_statement: "pledge" "(" expression ")" statement
+                   | "oath" statement "pledge" "(" expression ")" 
+                   | "chant" "(" declaration? assignment_expression? ";" expression? ")" statement 
+
+jump_statement: "persist" ";"
+              | "retreat" ";"
+              | "deliver" expression? ";"
+
+assignment_expression: conditional_expression
+                     | unary_expression assignment_operator assignment_expression
+
+assignment_operator: "="
+                   | "*="
+                   | "/="
+                   | "%="
+                   | "+="
+                   | "-="
+                   | "&="
+                   | "^="
+                   | "|="
+
+unary_operator: "&"
+              | "*"
+              | "+"
+              | "-"
+              | "!"
+
+expression: conditional_expression 
+          | string
+
+conditional_expression: logical_or_expression
+                      | logical_or_expression "?" expression ":" conditional_expression
+
+logical_or_expression: logical_and_expression
+                     | logical_or_expression "||" logical_and_expression
+
+logical_and_expression: inclusive_or_expression
+                      | logical_and_expression "&&" inclusive_or_expression
+
+inclusive_or_expression: exclusive_or_expression
+                        | inclusive_or_expression "|" exclusive_or_expression
+
+exclusive_or_expression: and_expression
+                       | exclusive_or_expression "^" and_expression
+
+and_expression: equality_expression
+              | and_expression "&" equality_expression
+
+equality_expression: relational_expression
+                    | equality_expression "==" relational_expression
+                    | equality_expression "!=" relational_expression
+
+relational_expression: additive_expression
+                     | relational_expression "<" additive_expression
+                     | relational_expression ">" additive_expression
+                     | relational_expression "<=" additive_expression
+                     | relational_expression ">=" additive_expression
+
+additive_expression: multiplicative_expression
+                   | additive_expression "+" multiplicative_expression
+                   | additive_expression "-" multiplicative_expression
+
+multiplicative_expression: unary_expression
+                         | multiplicative_expression "*" unary_expression
+                         | multiplicative_expression "/" unary_expression
+                         | multiplicative_expression "%" unary_expression
+
+unary_expression: postfix_expression
+                | "++" unary_expression
+                | "--" unary_expression
+
+postfix_expression: primary_expression
+                  | postfix_expression "[" expression "]"
+                  | postfix_expression "(" assignment_expression* ")"
+                  | postfix_expression "++"
+                  | postfix_expression "--"
+                  | function_call
+
+primary_expression: identifier
+                  | constant
+                  | string
+                  | "(" expression ")" 
+
+function_definition: type_specifier "invoke" identifier "(" parameter_list ")" function_body
+
+parameter_list: (type_specifier identifier ("," type_specifier identifier)*)?
+
+function_body: "{" (declaration | statement)* "}"
+
+function_call: identifier "(" argument_list ")"
+
+argument_list: (assignment_expression ("," assignment_expression)*)?
+
+array_declaration: "array" "<" type_specifier ">" identifier "=" "[" assignment_expression ("," assignment_expression)* "]" ";"
+
+
+identifier: LETTER (LETTER | DIGIT | "_")*
+constant: INT 
+        | FLOAT 
+string: ESCAPED_STRING
+
+%import common.LETTER
+%import common.DIGIT
+%import common.CNAME
+%import common.INT 
+%import common.FLOAT
+%import common.ESCAPED_STRING
+%ignore WS
+WS: /[ \t\f\r\n]+/
