@@ -11,16 +11,16 @@ statement: compound_statement
          | array_declaration 
          | function_definition
 
-tuple_declaration: "TypeKeyword(value='tuple')" "IDENTIFIER" "Operator(value='=')" "Symbols(value='(')" assignment_expression value_list "Symbols(value=')')" "ENDOFSTMT" 
+tuple_declaration: "TypeKeyword(value='tuple')" identifier "Operator(value='=')" "Symbols(value='(')" assignment_expression value_list "Symbols(value=')')" "EndOfStatement(value=';')" 
 
-list_declaration: "TypeKeyword(value='list')" "IDENTIFIER" "Operator(value='=')" "Symbols(value='[')" value_list "Symbols(value=']')" "ENDOFSTMT" 
+list_declaration: "TypeKeyword(value='list')" identifier "Operator(value='=')" "Symbols(value='[')" value_list "Symbols(value=']')" "EndOfStatement(value=';')" 
 
 value_list: ("Symbols(value=',')" assignment_expression)* 
 
 compound_statement: "Symbols(value='{')" declaration* statement* "Symbols(value='}')"
 
-declaration: declaration_specifier? assignment_expression "ENDOFSTMT"
-        | array_declaration "ENDOFSTMT"
+declaration: declaration_specifier? assignment_expression "EndOfStatement(value=';')"
+        | array_declaration "EndOfStatement(value=';')"
 
 declaration_specifier: "Keyword(value='eternal')"? type_specifier
 
@@ -29,19 +29,20 @@ type_specifier: "TypeKeyword(value='void')"
               | "TypeKeyword(value='int')"
               | "TypeKeyword(value='float')"
               | "TypeKeyword(value='bool')"
+              | "TypeKeyword(value='str')"
 
-preach_statement: "Keyword(value='preach')" "Symbols(value='(')" expression "Symbols(value=')')" "ENDOFSTMT"
+preach_statement: "Keyword(value='preach')" "Symbols(value='(')" expression "Symbols(value=')')" "EndOfStatement(value=';')"
 
 selection_statement: "Keyword(value='belief')" "Symbols(value='(')" expression "Symbols(value=')')" statement
                    | "Keyword(value='belief')" "Symbols(value='(')" expression "Symbols(value=')')" statement "Keyword(value='else')" statement
 
 iteration_statement: "Keyword(value='pledge')" "Symbols(value='(')" expression "Symbols(value=')')" statement
-                   | "Keyword(value='oath')" statement "Keyword(value='pledge')" "Symbols(value='(')" expression "Symbols(value=')')" "ENDOFSTMT"
-                   | "Keyword(value='chant')" "Symbols(value='(')" declaration_specifier? assignment_expression "ENDOFSTMT" expression? "ENDOFSTMT" expression? "Symbols(value=')')" statement 
+                   | "Keyword(value='oath')" statement "Keyword(value='pledge')" "Symbols(value='(')" expression "Symbols(value=')')" "EndOfStatement(value=';')"
+                   | "Keyword(value='chant')" "Symbols(value='(')" declaration_specifier? assignment_expression "EndOfStatement(value=';')" expression? "EndOfStatement(value=';')" expression? "Symbols(value=')')" statement 
 
-jump_statement: "Keyword(value='persist')" "ENDOFSTMT"
-              | "Keyword(value='retreat')" "ENDOFSTMT"
-              | "Keyword(value='deliver')" expression? "ENDOFSTMT"
+jump_statement: "Keyword(value='persist')" "EndOfStatement(value=';')"
+              | "Keyword(value='retreat')" "EndOfStatement(value=';')"
+              | "Keyword(value='deliver')" expression? "EndOfStatement(value=';')"
 
 assignment_expression:  expression
                       | postfix_expression assignment_operator assignment_expression
@@ -86,52 +87,66 @@ multiplicative_expression: postfix_expression
 postfix_expression: function_call 
                   | postfix_expression "Operator(value='++')"
                   | postfix_expression "Operator(value='--')"
+                  | member_access_expression
+
+member_access_expression: primary_expression "Symbols(value='.')" list_op 
+                  | primary_expression "Symbols(value='.')" tuple_op
+                  | primary_expression "Symbols(value='.')'" array_op
+                  | primary_expression "Symbols(value='[')" identifier "Symbols(value=']')"  
                   | primary_expression
 
-primary_expression: "IDENTIFIER"
-                  | "INTEGER"
-                  | "FLOAT"
-                  | "STRING"
-                  | "BOOLEAN"
+primary_expression: identifier
+                  | integer
+                  | float
+                  | string
+                  | boolean
+                  | char
                   | "Symbols(value='(')" expression "Symbols(value=')')"
-                  | "IDENTIFIER" "Symbols(value='.')" list_op 
-                  | "IDENTIFIER" "Symbols(value='.')" tuple_op
-                  | "IDENTIFIER" "Symbols(value='.')'" array_op
-                  | "IDENTIFIER" "Symbols(value='[')" "IDENTIFIER" "Symbols(value=']')"  
 
-list_op: "UtilityFunction(value='head')" "ENDOFSTMT"
-        | "UtilityFunction(value='tail')" "ENDOFSTMT"
+identifier: "Identifier(value='" CNAME "')"
+integer: "Int(value=" SIGNED_INT ")"
+float: "Float(value=" SIGNED_FLOAT ")"
+string: "StringToken(value=" SINGLE_QUOTE_STR ")"
+char: "CharToken(value=" CHAR_SEQUENCE ")"
+SINGLE_QUOTE_STR: /'([^'\\]|\\.)*'/
+CHAR_SEQUENCE: "'" ( /\\[nrt'"\\]/ | /[^'\\]/) "'"
+boolean: "Bool(value=True)"
+       | "Bool(value=False)"
+
+
+list_op: "UtilityFunction(value='head')" "EndOfStatement(value=';')"
+        | "UtilityFunction(value='tail')" "EndOfStatement(value=';')"
         | "UtilityFunction(value='length')"
-        | "UtilityFunction(value='cons')" "Symbols(value='(')" expression "Symbols(value=')')" "ENDOFSTMT"
-        | "UtilityFunction(value='append')" "Symbols(value='(')" expression "Symbols(value=')')" "ENDOFSTMT"
-        | "UtilityFunction(value='insert')" "Symbols(value='(')" expression "Symbols(value=',')" expression "Symbols(value=')')" "ENDOFSTMT"
+        | "UtilityFunction(value='cons')" "Symbols(value='(')" expression "Symbols(value=')')" "EndOfStatement(value=';')"
+        | "UtilityFunction(value='append')" "Symbols(value='(')" expression "Symbols(value=')')" "EndOfStatement(value=';')"
+        | "UtilityFunction(value='insert')" "Symbols(value='(')" expression "Symbols(value=',')" expression "Symbols(value=')')" "EndOfStatement(value=';')"
 
-tuple_op: "UtilityFunction(value='head')" "ENDOFSTMT"
-        | "UtilityFunction(value='tail')" "ENDOFSTMT"
+tuple_op: "UtilityFunction(value='head')" "EndOfStatement(value=';')"
+        | "UtilityFunction(value='tail')" "EndOfStatement(value=';')"
         | "UtilityFunction(value='cons')" "Symbols(value='(')" expression "Symbols(value=')')"
         | "UtilityFunction(value='length')"
 
 array_op: "UtilityFunction(value='length')"
-        | "UtilityFunction(value='append')" "Symbols(value='(')" expression "Symbols(value=')')" "ENDOFSTMT"
-        | "UtilityFunction(value='remove')" "Symbols(value='(')" expression "Symbols(value=')')" "ENDOFSTMT"
+        | "UtilityFunction(value='append')" "Symbols(value='(')" expression "Symbols(value=')')" "EndOfStatement(value=';')"
+        | "UtilityFunction(value='remove')" "Symbols(value='(')" expression "Symbols(value=')')" "EndOfStatement(value=';')"
         | "Symbols(value='[')" expression "Symbols(value=']')"
 
-function_definition: "Keyword(value='invoke')" type_specifier "IDENTIFIER" "Symbols(value='(')" parameter_list "Symbols(value=')')" function_body
+function_definition: "Keyword(value='invoke')" type_specifier identifier "Symbols(value='(')" parameter_list "Symbols(value=')')" function_body
 
-parameter_list: (type_specifier "IDENTIFIER" ("Symbols(value=',')" type_specifier "IDENTIFIER")*)?
+parameter_list: (type_specifier identifier ("Symbols(value=',')" type_specifier identifier)*)?
 
 function_body: "Symbols(value='{')" (declaration | statement)* "Symbols(value='}')"
 
-function_call: "IDENTIFIER" "Symbols(value='(')" assignment_expression value_list "Symbols(value=')')" 
+function_call: identifier "Symbols(value='(')" assignment_expression value_list "Symbols(value=')')" 
 
-array_declaration: "TypeKeyword(value='array')" "Operator(value='<')" type_specifier "Operator(value='>')" "IDENTIFIER" "Operator(value='=')" "Symbols(value='[')" expression ("Symbols(value=',') " expression)* "Symbols(value=']')" "ENDOFSTMT"
+array_declaration: "TypeKeyword(value='array')" "Operator(value='<')" type_specifier "Operator(value='>')" identifier "Operator(value='=')" "Symbols(value='[')" expression ("Symbols(value=',') " expression)* "Symbols(value=']')" "EndOfStatement(value=';')"
 
 
 %import common.LETTER
-%import common.DIGIT
+%import common.NUMBER
 %import common.CNAME
-%import common.INT 
-%import common.FLOAT
+%import common.SIGNED_INT 
+%import common.SIGNED_FLOAT
 %import common.ESCAPED_STRING
 %import common.WS
 %ignore WS
