@@ -134,13 +134,13 @@ class UtilityFunction:
     value: str
 
 
-# @dataclass
-# class CharToken:
-#   value: str
+@dataclass
+class CharToken:
+  value: str
 
 
 Token = Union[Int, Float, Bool, Keyword, Identifier, Operator, Symbols,
-              StringToken, ListToken, Whitespace] # , CharToken
+              StringToken, ListToken, Whitespace] , CharToken
 
 
 class Token:
@@ -206,7 +206,7 @@ class Lexer:
     while self.current_char is not None:
       if self.current_char in whitespace:
         self.advance()
-      elif self.current_char in DIGITS:
+      elif self.current_char in DIGITS or self.current_char == '-':
         tokens.append(self.make_number())
       elif self.current_char == ';':
         tokens.append(EndOfStatement(';'))
@@ -216,16 +216,18 @@ class Lexer:
         self.skip_comment()
       elif self.current_char == '"':
         tokens.append(self.make_string())  # Handle string literals
+      elif self.current_char == "'":
+        tokens.append(self.make_char())
       elif self.current_char + self.peek() in self.double_char_tokens:
         double_char = self.current_char + self.peek()
         tokens.append(self.double_char_tokens[double_char])
         self.advance()  # Advance past the first character
         self.advance()  # Advance past the second character
+
       elif self.current_char in self.single_char_tokens:
         tokens.append(self.single_char_tokens[self.current_char])
         self.advance()
-      elif self.current_char == "'":
-        tokens.append(self.make_char())  # Handle character literals
+  # Handle character literals
       # elif self.current_char == '\n': # Handle newlines, not necessary since focus is semicolons
       #   tokens.append(Whitespace('\n'))
       #   self.advance()
@@ -248,7 +250,7 @@ class Lexer:
     )  # Optional: Skip the newline character as well, if you want to ignore it
 
   def make_string(self):
-      string_val = ''
+      string_val = ""
       self.advance()  # Skip the opening quote
 
       while self.current_char is not None and self.current_char != '"':
@@ -269,27 +271,50 @@ class Lexer:
       
       self.advance()  # Consume the closing quote
       return StringToken(string_val)
-    
+  
+  def make_char(self):
+    pos_start = self.pos.copy()
+    self.advance()  # Consume the opening quote
+
+    if self.current_char == '\\':
+      # Handle escape sequences
+      self.advance()
+      if self.current_char in ['n', 'r', 't', '\\', '\'']:
+        if self.current_char == 'n':
+          char_val = '\n'
+        elif self.current_char == 't':
+          char_val = '\t'
+        else:
+          char_val = self.current_char  # For '\\' and '\''
+      else:
+        # Handle unknown escape sequences
+        return None, IllegalCharError(
+          pos_start, self.pos,
+          f"Unknown escape sequence '\\{self.current_char}'"
+        )
+      self.advance()
+    else:
+      # Regular single character
+      char_val = self.current_char
+      self.advance()
+
+    if self.current_char != "'":
+      # Error if the closing quote is missing
+      return None, IllegalCharError(
+        pos_start, self.pos,
+        "Character literals must be single characters enclosed in single quotes"
+      )
+
+    self.advance()  # Consume the closing quote
+    return CharToken(char_val)
+
+
   def extract_identifier(self):
     identifier_str = ''
     while self.current_char is not None and (self.current_char.isalnum() or self.current_char == '_'):
       identifier_str += self.current_char
       self.advance()
     return identifier_str
-  
-  # def make_char(self):
-  #   self.advance()  # Consume the opening quote
-  #   char_val = self.current_char  # Assign the character value
-  #   pos_start = self.pos.copy()
-  #   self.advance()  # Move to the next character
-
-  #   if self.current_char != "'":
-  #     return None, IllegalCharError(
-  #         pos_start, self.pos,
-  #         "Character literals must be single characters enclosed in single quotes"
-  #     )
-  #   self.advance()  # Consume the closing quote
-  #   return CharToken(char_val)
 
   def make_identifier(self):
     identifier_str = ''
@@ -307,7 +332,7 @@ class Lexer:
       return TypeKeyword(identifier_str)
   # Check if the identifier is a utility function (list, array, tuple utilities combined)
     elif identifier_str in utils:
-        return UtilityFunction(identifier_str)
+      return UtilityFunction(identifier_str)
     else:
       return Identifier(identifier_str)
 
@@ -316,30 +341,22 @@ class Lexer:
       dot_count = 0
       pos_start = self.pos.copy()  # Remember the start of the number for error reporting
 
+      # Check for leading minus sign
+      if self.current_char == '-':
+          num_str += '-'
+          self.advance()
+
       while self.current_char is not None and (self.current_char.isdigit() or self.current_char == '.'):
           if self.current_char == '.':
               dot_count += 1
-              num_str += '.'
-          else:
-              num_str += self.current_char
+              if dot_count > 1:  # Check for multiple decimal points
+                  return [], IllegalCharError(pos_start, self.pos, f"Multiple decimal points found in number '{num_str}'")
+          num_str += self.current_char
           self.advance()
-      if dot_count > 1:  # After exiting the loop, check if we encountered more than one dot
-          return [], IllegalCharError(pos_start, self.pos, f"Multiple decimal points found in number '{num_str}'")
-      elif dot_count == 0:
-          return Int(int(num_str))
-      else:
+      if '.' in num_str:
           return Float(float(num_str))
-
-
-
-########## Lists, tuples and arrays #############
-
-###################################################
-# add for identifying string literals, list literals, tuple literals, and array literals.
-#######################################
-# RUN
-#######################################
-
+      else:
+          return Int(int(num_str))
 
 def run(fn, text):
   lexer = Lexer(fn, text)
