@@ -1,23 +1,13 @@
 import sys
 import os
-import lexer
+import lexer  
 from lark import Lark, Transformer, Tree
-from typing import List
-from dataclasses import dataclass
-from lark import Lark, ast_utils, Transformer, v_args
-from lark.tree import Meta
-import ast__Classes
-import ast_Transformer
-
-this_module = sys.modules[__name__]
 
 # Load your grammar from the file
 with open('mygrammar.lark') as file:
     grammar = file.read()
 parser = Lark(grammar, start='start', parser='earley')
 
-
-transformer = ast_utils.create_transformer(this_module, ast_Transformer.ToAst())
 
 def read_holy_script_file(file_path):
     try:
@@ -46,28 +36,13 @@ def run_script(text, file_path):
     else:
             values = []
             for token in tokens:
-                if isinstance(token, lexer.Identifier):
-                    values.append("IDENTIFIER")
-                elif isinstance(token, lexer.Int):
-                    values.append("INTEGER")
-                elif isinstance(token, lexer.Float):
-                    values.append("FLOAT")
-                elif isinstance(token, lexer.StringToken):
-                    values.append("STRING")
-                elif isinstance(token, lexer.Bool):
-                    values.append("BOOLEAN")
-                elif isinstance(token, lexer.EndOfStatement):
-                    values.append("ENDOFSTMT")
-                else:
-                    values.append(str(token))
+                values.append(str(token))
             # Print the values separated by commas
             # print(" ".join(values))
+            print(values)
             script = (" ".join(values))
-            # print(script)
             tree = parser.parse(script)
             print(tree.pretty())
-            my_ast = transformer.transform(tree)
-            print(my_ast)
 
 def is_holy_script_file(file_path):
     return os.path.isfile(file_path) and file_path.endswith('.holy')
@@ -94,28 +69,12 @@ Type 'exit' to depart.
         else:
             values = []
             for token in tokens:
-                if isinstance(token, lexer.Identifier):
-                    values.append("IDENTIFIER")
-                elif isinstance(token, lexer.Int):
-                    values.append("INTEGER")
-                elif isinstance(token, lexer.Float):
-                    values.append("FLOAT")
-                elif isinstance(token, lexer.StringToken):
-                    values.append("STRING")
-                elif isinstance(token, lexer.Bool):
-                    values.append("BOOLEAN")
-                elif isinstance(token, lexer.EndOfStatement):
-                    values.append("ENDOFSTMT")
-                else:
-                    # Convert the token to a string for all other token types
-                    values.append(str(token))
+                values.append(str(token))
             # Print the values separated by commas
-            # print(" ".join(values))
+            print(" ".join(values))
             script = (" ".join(values))
             tree = parser.parse(script)
-            my_ast = transformer.transform(tree)
-            print(my_ast)
-
+            print(tree.pretty())
 if __name__ == "__main__":
     if len(sys.argv) == 2:
         file_path = sys.argv[1]
@@ -129,4 +88,3 @@ if __name__ == "__main__":
             print(f"The provided scripture '{file_path}' is not found or lacks the sacred .holy suffix.")
     else:
         run_cli()
-        # pass
