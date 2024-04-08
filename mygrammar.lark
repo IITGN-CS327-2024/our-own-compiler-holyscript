@@ -31,13 +31,10 @@ type_specifier: "TypeKeyword(value='" VOID "')"
               | "TypeKeyword(value='" BOOL "')"
               | "TypeKeyword(value='" STR "')"
 
-
 preach_statement: "Keyword(value='" KEYWORD_PREACH "')" "Symbols(value='" LPAREN "')" expression "Symbols(value='" RPAREN "')" "EndOfStatement(value=';')"
-
 
 selection_statement: "Keyword(value='" KEYWORD_BELIEF "')" "Symbols(value='" LPAREN "')" expression "Symbols(value='" RPAREN "')" statement
                    | "Keyword(value='" KEYWORD_BELIEF "')" "Symbols(value='" LPAREN "')" expression "Symbols(value='" RPAREN "')" statement "Keyword(value='" KEYWORD_ELSE "')" statement
-
 
 iteration_statement: "Keyword(value='" KEYWORD_PLEDGE "')" "Symbols(value='" LPAREN "')" expression "Symbols(value='" RPAREN "')" statement
                    | "Keyword(value='" KEYWORD_OATH "')" statement "Keyword(value='" KEYWORD_PLEDGE "')" "Symbols(value='" LPAREN "')" expression "Symbols(value='" RPAREN "')" "EndOfStatement(value=';')"
@@ -94,8 +91,6 @@ postfix_expression: function_call
                   | postfix_expression "Operator(value='" DECREMENT "')" 
                   | member_access_expression
 
-
-
 member_access_expression: primary_expression "Symbols(value='" DOT "')" list_op 
                         | primary_expression "Symbols(value='" DOT "')" tuple_op
                         | primary_expression "Symbols(value='" DOT "')" array_op
@@ -115,9 +110,7 @@ list_op: "UtilityFunction(value='" HEAD "')" "EndOfStatement(value=';')"
        | "UtilityFunction(value='" LENGTH "')"
        | "UtilityFunction(value='" CONS "')" "Symbols(value='" LPAREN "')" expression "Symbols(value='" RPAREN "')" "EndOfStatement(value=';')"
        | "UtilityFunction(value='" APPEND "')" "Symbols(value='" LPAREN "')" expression "Symbols(value='" RPAREN "')" "EndOfStatement(value=';')"
-       | "UtilityFunction(value='" INSERT "')" "Symbols(value='" LPAREN "')" expression "Symbols(value='" COMMA "')" expression "Symbols(value='" RPAREN "')" "EndOfStatement(value=';')"
-
-
+       | "UtilityFunction(value='" INSERT "')" "Symbols(value='" LPAREN "')" expression "Symbols(value=',')" expression "Symbols(value='" RPAREN "')" "EndOfStatement(value=';')"
 
 tuple_op: "UtilityFunction(value='" TUPLE_HEAD "')" "EndOfStatement(value=';')"
         | "UtilityFunction(value='" TUPLE_TAIL "')" "EndOfStatement(value=';')"
@@ -129,14 +122,9 @@ array_op: "UtilityFunction(value='" ARRAY_LENGTH "')"
         | "UtilityFunction(value='" ARRAY_REMOVE "')" "Symbols(value='" LPAREN "')" expression "Symbols(value='" RPAREN "')" "EndOfStatement(value=';')"
         | "Symbols(value='" LBRACKET "')" expression "Symbols(value='" RBRACKET "')"
 
-
-
-
 function_definition: "Keyword(value='" INVOKE "')" type_specifier identifier "Symbols(value='" LPAREN "')" parameter_list "Symbols(value='" RPAREN "')" function_body
 
-parameter_list: (type_specifier identifier ("Symbols(value='" COMMA "')" type_specifier identifier)*)?
-
-
+parameter_list: (type_specifier identifier ("Symbols(value=',')" type_specifier identifier)*)?
 
 function_body: "Symbols(value='" LBRACE "')" (declaration | statement)* "Symbols(value='" RBRACE "')"
 
@@ -151,7 +139,6 @@ RBRACKET: "]"
 LPAREN: "("
 RPAREN: ")"
 DOT: "."
-COMMA: ","
 HEAD: "head"
 TAIL: "tail"
 LENGTH: "length"
