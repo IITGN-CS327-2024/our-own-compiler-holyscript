@@ -11,89 +11,96 @@ statement: compound_statement
          | array_declaration 
          | function_definition
 
-tuple_declaration: "TypeKeyword(value='tuple')" identifier "Operator(value='=')" "Symbols(value='(')" assignment_expression value_list "Symbols(value=')')" "EndOfStatement(value=';')" 
+tuple_declaration: "TypeKeyword(value='tuple')" identifier "Operator(value='=')" "Symbols(value='" LPAREN "')" assignment_expression value_list "Symbols(value='" RPAREN "')" "EndOfStatement(value=';')"
 
-list_declaration: "TypeKeyword(value='list')" identifier "Operator(value='=')" "Symbols(value='[')" value_list "Symbols(value=']')" "EndOfStatement(value=';')" 
+list_declaration: "TypeKeyword(value='list')" identifier "Operator(value='=')" "Symbols(value='" LBRACKET "')" value_list "Symbols(value='" RBRACKET "')" "EndOfStatement(value=';')"
 
 value_list: ("Symbols(value=',')" assignment_expression)* 
 
-compound_statement: "Symbols(value='{')" declaration* statement* "Symbols(value='}')"
+compound_statement: "Symbols(value='" LBRACE "')" declaration* statement* "Symbols(value='" RBRACE "')"
 
 declaration: declaration_specifier? assignment_expression "EndOfStatement(value=';')"
         | array_declaration "EndOfStatement(value=';')"
 
-declaration_specifier: "Keyword(value='eternal')"? type_specifier
+declaration_specifier: ("Keyword(value='" ETERNAL "')")? type_specifier
 
-type_specifier: "TypeKeyword(value='void')"
-              | "TypeKeyword(value='char')"
-              | "TypeKeyword(value='int')"
-              | "TypeKeyword(value='float')"
-              | "TypeKeyword(value='bool')"
-              | "TypeKeyword(value='str')"
+type_specifier: "TypeKeyword(value='" VOID "')"
+              | "TypeKeyword(value='" CHAR "')"
+              | "TypeKeyword(value='" INT "')"
+              | "TypeKeyword(value='" FLOAT "')"
+              | "TypeKeyword(value='" BOOL "')"
+              | "TypeKeyword(value='" STR "')"
 
-preach_statement: "Keyword(value='preach')" "Symbols(value='(')" expression "Symbols(value=')')" "EndOfStatement(value=';')"
 
-selection_statement: "Keyword(value='belief')" "Symbols(value='(')" expression "Symbols(value=')')" statement
-                   | "Keyword(value='belief')" "Symbols(value='(')" expression "Symbols(value=')')" statement "Keyword(value='else')" statement
+preach_statement: "Keyword(value='" KEYWORD_PREACH "')" "Symbols(value='" LPAREN "')" expression "Symbols(value='" RPAREN "')" "EndOfStatement(value=';')"
 
-iteration_statement: "Keyword(value='pledge')" "Symbols(value='(')" expression "Symbols(value=')')" statement
-                   | "Keyword(value='oath')" statement "Keyword(value='pledge')" "Symbols(value='(')" expression "Symbols(value=')')" "EndOfStatement(value=';')"
-                   | "Keyword(value='chant')" "Symbols(value='(')" declaration_specifier? assignment_expression "EndOfStatement(value=';')" expression? "EndOfStatement(value=';')" expression? "Symbols(value=')')" statement 
 
-jump_statement: "Keyword(value='persist')" "EndOfStatement(value=';')"
-              | "Keyword(value='retreat')" "EndOfStatement(value=';')"
-              | "Keyword(value='deliver')" expression? "EndOfStatement(value=';')"
+selection_statement: "Keyword(value='" KEYWORD_BELIEF "')" "Symbols(value='" LPAREN "')" expression "Symbols(value='" RPAREN "')" statement
+                   | "Keyword(value='" KEYWORD_BELIEF "')" "Symbols(value='" LPAREN "')" expression "Symbols(value='" RPAREN "')" statement "Keyword(value='" KEYWORD_ELSE "')" statement
+
+
+iteration_statement: "Keyword(value='" KEYWORD_PLEDGE "')" "Symbols(value='" LPAREN "')" expression "Symbols(value='" RPAREN "')" statement
+                   | "Keyword(value='" KEYWORD_OATH "')" statement "Keyword(value='" KEYWORD_PLEDGE "')" "Symbols(value='" LPAREN "')" expression "Symbols(value='" RPAREN "')" "EndOfStatement(value=';')"
+                   | "Keyword(value='" KEYWORD_CHANT "')" "Symbols(value='" LPAREN "')" declaration_specifier? assignment_expression "EndOfStatement(value=';')" expression? "EndOfStatement(value=';')" expression? "Symbols(value='" RPAREN "')" statement 
+
+
+jump_statement: "Keyword(value='" KEYWORD_PERSIST "')" "EndOfStatement(value=';')"
+              | "Keyword(value='" KEYWORD_RETREAT "')" "EndOfStatement(value=';')"
+              | "Keyword(value='" KEYWORD_DELIVER "')" expression? "EndOfStatement(value=';')"
 
 assignment_expression:  expression
                       | postfix_expression assignment_operator assignment_expression
 
-assignment_operator: "Operator(value='=')"
-                   | "Operator(value='*=')"
-                   | "Operator(value='/=')"
-                   | "Operator(value='%=')"
-                   | "Operator(value='+=')"
-                   | "Operator(value='-=')"
+assignment_operator: "Operator(value='" ASSIGN "')"
+                   | "Operator(value='" MULTIPLY_ASSIGN "')"
+                   | "Operator(value='" DIVIDE_ASSIGN "')"
+                   | "Operator(value='" MODULO_ASSIGN "')"
+                   | "Operator(value='" ADD_ASSIGN "')"
+                   | "Operator(value='" SUBTRACT_ASSIGN "')"
 
 expression: logical_or_expression
 
 logical_or_expression: logical_and_expression
-                     | logical_or_expression "Operator(value='||')" logical_and_expression
+                     | logical_or_expression "Operator(value='" OR "')" logical_and_expression
 
 logical_and_expression: and_expression
-                      | logical_and_expression "Operator(value='&&')" and_expression
+                      | logical_and_expression "Operator(value='" AND "')" and_expression
 
 and_expression: equality_expression
-              | and_expression "Operator(value='&')" equality_expression
+              | and_expression "Operator(value='" BIT_AND "')" equality_expression
 
 equality_expression: relational_expression
-                    | equality_expression "Operator(value='==')" relational_expression
-                    | equality_expression "Operator(value='!=')" relational_expression
+                    | equality_expression "Operator(value='" EQ "')" relational_expression
+                    | equality_expression "Operator(value='" NEQ "')" relational_expression
 
 relational_expression: additive_expression
-                     | relational_expression "Operator(value='<')" additive_expression
-                     | relational_expression "Operator(value='>')" additive_expression
-                     | relational_expression "Operator(value='<=')" additive_expression
-                     | relational_expression "Operator(value='>=')" additive_expression
+                     | relational_expression "Operator(value='" LT "')" additive_expression
+                     | relational_expression "Operator(value='" GT "')" additive_expression
+                     | relational_expression "Operator(value='" LEQ "')" additive_expression
+                     | relational_expression "Operator(value='" GEQ "')" additive_expression
 
 additive_expression: multiplicative_expression
-                   | additive_expression "Operator(value='+')" multiplicative_expression
-                   | additive_expression "Operator(value='-')" multiplicative_expression
+                   | additive_expression "Operator(value='" PLUS "')" multiplicative_expression
+                   | additive_expression "Operator(value='" MINUS "')" multiplicative_expression
+
 
 multiplicative_expression: postfix_expression
-                         | multiplicative_expression "Operator(value='*')" postfix_expression
-                         | multiplicative_expression "Operator(value='/')" postfix_expression
-                         | multiplicative_expression "Operator(value='%')" postfix_expression
+                         | multiplicative_expression "Operator(value='" MULTIPLY "')" postfix_expression
+                         | multiplicative_expression "Operator(value='" DIVIDE "')" postfix_expression
+                         | multiplicative_expression "Operator(value='" MODULO "')" postfix_expression
 
 postfix_expression: function_call 
-                  | postfix_expression "Operator(value='++')"
-                  | postfix_expression "Operator(value='--')"
+                  | postfix_expression "Operator(value='" INCREMENT "')" 
+                  | postfix_expression "Operator(value='" DECREMENT "')" 
                   | member_access_expression
 
-member_access_expression: primary_expression "Symbols(value='.')" list_op 
-                  | primary_expression "Symbols(value='.')" tuple_op
-                  | primary_expression "Symbols(value='.')'" array_op
-                  | primary_expression "Symbols(value='[')" identifier "Symbols(value=']')"  
-                  | primary_expression
+
+
+member_access_expression: primary_expression "Symbols(value='" DOT "')" list_op 
+                        | primary_expression "Symbols(value='" DOT "')" tuple_op
+                        | primary_expression "Symbols(value='" DOT "')" array_op
+                        | primary_expression "Symbols(value='" LBRACKET "')" identifier "Symbols(value='" RBRACKET "')"  
+                        | primary_expression
 
 primary_expression: identifier
                   | integer
@@ -101,7 +108,104 @@ primary_expression: identifier
                   | string
                   | boolean
                   | char
-                  | "Symbols(value='(')" expression "Symbols(value=')')"
+                  | "Symbols(value='" LPAREN "')" expression "Symbols(value='" RPAREN "')"
+
+list_op: "UtilityFunction(value='" HEAD "')" "EndOfStatement(value=';')"
+       | "UtilityFunction(value='" TAIL "')" "EndOfStatement(value=';')"
+       | "UtilityFunction(value='" LENGTH "')"
+       | "UtilityFunction(value='" CONS "')" "Symbols(value='" LPAREN "')" expression "Symbols(value='" RPAREN "')" "EndOfStatement(value=';')"
+       | "UtilityFunction(value='" APPEND "')" "Symbols(value='" LPAREN "')" expression "Symbols(value='" RPAREN "')" "EndOfStatement(value=';')"
+       | "UtilityFunction(value='" INSERT "')" "Symbols(value='" LPAREN "')" expression "Symbols(value='" COMMA "')" expression "Symbols(value='" RPAREN "')" "EndOfStatement(value=';')"
+
+
+
+tuple_op: "UtilityFunction(value='" TUPLE_HEAD "')" "EndOfStatement(value=';')"
+        | "UtilityFunction(value='" TUPLE_TAIL "')" "EndOfStatement(value=';')"
+        | "UtilityFunction(value='" TUPLE_CONS "')" "Symbols(value='" LPAREN "')" expression "Symbols(value='" RPAREN "')"
+        | "UtilityFunction(value='" TUPLE_LENGTH "')"
+
+array_op: "UtilityFunction(value='" ARRAY_LENGTH "')"
+        | "UtilityFunction(value='" ARRAY_APPEND "')" "Symbols(value='" LPAREN "')" expression "Symbols(value='" RPAREN "')" "EndOfStatement(value=';')"
+        | "UtilityFunction(value='" ARRAY_REMOVE "')" "Symbols(value='" LPAREN "')" expression "Symbols(value='" RPAREN "')" "EndOfStatement(value=';')"
+        | "Symbols(value='" LBRACKET "')" expression "Symbols(value='" RBRACKET "')"
+
+
+
+
+function_definition: "Keyword(value='" INVOKE "')" type_specifier identifier "Symbols(value='" LPAREN "')" parameter_list "Symbols(value='" RPAREN "')" function_body
+
+parameter_list: (type_specifier identifier ("Symbols(value='" COMMA "')" type_specifier identifier)*)?
+
+
+
+function_body: "Symbols(value='" LBRACE "')" (declaration | statement)* "Symbols(value='" RBRACE "')"
+
+function_call: identifier "Symbols(value='" LPAREN "')" assignment_expression value_list "Symbols(value='" RPAREN "')"
+
+array_declaration: "TypeKeyword(value='array')" "Operator(value='<')" type_specifier "Operator(value='>')" identifier "Operator(value='=')" "Symbols(value='" LBRACKET "')" expression ("Symbols(value=',')" expression)* "Symbols(value='" RBRACKET "')" "EndOfStatement(value=';')"
+
+LBRACE: "{"
+RBRACE: "}"
+LBRACKET: "["
+RBRACKET: "]"
+LPAREN: "("
+RPAREN: ")"
+DOT: "."
+COMMA: ","
+HEAD: "head"
+TAIL: "tail"
+LENGTH: "length"
+CONS: "cons"
+APPEND: "append"
+INSERT: "insert"
+INVOKE: "invoke"
+TUPLE_HEAD: "head"
+TUPLE_TAIL: "tail"
+TUPLE_CONS: "cons"
+TUPLE_LENGTH: "length"
+ARRAY_LENGTH: "length"
+ARRAY_APPEND: "append"
+ARRAY_REMOVE: "remove"
+TRUE: "True"
+FALSE: "False"
+MULTIPLY: "*"
+DIVIDE: "/"
+MODULO: "%"
+INCREMENT: "++"
+DECREMENT: "--"
+OR: "||"
+AND: "&&"
+BIT_AND: "&"
+EQ: "=="
+NEQ: "!="
+LT: "<"
+GT: ">"
+LEQ: "<="
+GEQ: ">="
+PLUS: "+"
+MINUS: "-"
+ASSIGN: "="
+MULTIPLY_ASSIGN: "*="
+DIVIDE_ASSIGN: "/="
+MODULO_ASSIGN: "%="
+ADD_ASSIGN: "+="
+SUBTRACT_ASSIGN: "-="
+ETERNAL: "eternal"
+VOID: "void"
+CHAR: "char"
+INT: "int"
+FLOAT: "float"
+BOOL: "bool"
+STR: "str"
+KEYWORD_PREACH: "preach"
+KEYWORD_BELIEF: "belief"
+KEYWORD_ELSE: "else"
+KEYWORD_PLEDGE: "pledge"
+KEYWORD_OATH: "oath"
+KEYWORD_CHANT: "chant"
+KEYWORD_PERSIST: "persist"
+KEYWORD_RETREAT: "retreat"
+KEYWORD_DELIVER: "deliver"
 
 identifier: "Identifier(value='" CNAME "')"
 integer: "Int(value=" SIGNED_INT ")"
@@ -110,37 +214,8 @@ string: "StringToken(value=" SINGLE_QUOTE_STR ")"
 char: "CharToken(value=" CHAR_SEQUENCE ")"
 SINGLE_QUOTE_STR: /'([^'\\]|\\.)*'/
 CHAR_SEQUENCE: "'" ( /\\[nrt'"\\]/ | /[^'\\]/) "'"
-boolean: "Bool(value=True)"
-       | "Bool(value=False)"
-
-
-list_op: "UtilityFunction(value='head')" "EndOfStatement(value=';')"
-        | "UtilityFunction(value='tail')" "EndOfStatement(value=';')"
-        | "UtilityFunction(value='length')"
-        | "UtilityFunction(value='cons')" "Symbols(value='(')" expression "Symbols(value=')')" "EndOfStatement(value=';')"
-        | "UtilityFunction(value='append')" "Symbols(value='(')" expression "Symbols(value=')')" "EndOfStatement(value=';')"
-        | "UtilityFunction(value='insert')" "Symbols(value='(')" expression "Symbols(value=',')" expression "Symbols(value=')')" "EndOfStatement(value=';')"
-
-tuple_op: "UtilityFunction(value='head')" "EndOfStatement(value=';')"
-        | "UtilityFunction(value='tail')" "EndOfStatement(value=';')"
-        | "UtilityFunction(value='cons')" "Symbols(value='(')" expression "Symbols(value=')')"
-        | "UtilityFunction(value='length')"
-
-array_op: "UtilityFunction(value='length')"
-        | "UtilityFunction(value='append')" "Symbols(value='(')" expression "Symbols(value=')')" "EndOfStatement(value=';')"
-        | "UtilityFunction(value='remove')" "Symbols(value='(')" expression "Symbols(value=')')" "EndOfStatement(value=';')"
-        | "Symbols(value='[')" expression "Symbols(value=']')"
-
-function_definition: "Keyword(value='invoke')" type_specifier identifier "Symbols(value='(')" parameter_list "Symbols(value=')')" function_body
-
-parameter_list: (type_specifier identifier ("Symbols(value=',')" type_specifier identifier)*)?
-
-function_body: "Symbols(value='{')" (declaration | statement)* "Symbols(value='}')"
-
-function_call: identifier "Symbols(value='(')" assignment_expression value_list "Symbols(value=')')" 
-
-array_declaration: "TypeKeyword(value='array')" "Operator(value='<')" type_specifier "Operator(value='>')" identifier "Operator(value='=')" "Symbols(value='[')" expression ("Symbols(value=',') " expression)* "Symbols(value=']')" "EndOfStatement(value=';')"
-
+boolean: "Bool(value='" TRUE "')"
+       | "Bool(value='" FALSE "')"
 
 %import common.LETTER
 %import common.NUMBER
