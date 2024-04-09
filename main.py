@@ -2,11 +2,21 @@ import sys
 import os
 import lexer  
 from lark import Lark, Transformer, Tree
+from lark import ast_utils
+import ast_Transformer, ast__Classes
+
+
+this_module = sys.modules[__name__]
 
 # Load your grammar from the file
 with open('mygrammar.lark') as file:
     grammar = file.read()
 parser = Lark(grammar, start='start', parser='earley')
+
+transformer = ast_utils.create_transformer(this_module, ast_Transformer.ToAst())
+
+
+
 
 
 def read_holy_script_file(file_path):
@@ -39,10 +49,14 @@ def run_script(text, file_path):
                 values.append(str(token))
             # Print the values separated by commas
             # print(" ".join(values))
-            print(values)
+            # print(values)
             script = (" ".join(values))
             tree = parser.parse(script)
-            print(tree.pretty())
+            # print(tree.pretty())
+            my_ast = transformer.transform(tree)
+            print(my_ast)
+            print(my_ast.pretty_print())
+            # print(transform_ast_string(my_ast))
 
 def is_holy_script_file(file_path):
     return os.path.isfile(file_path) and file_path.endswith('.holy')
@@ -71,10 +85,15 @@ Type 'exit' to depart.
             for token in tokens:
                 values.append(str(token))
             # Print the values separated by commas
-            print(" ".join(values))
+            # print(" ".join(values))
             script = (" ".join(values))
             tree = parser.parse(script)
-            print(tree.pretty())
+            # print(tree.pretty())
+            my_ast = transformer.transform(tree)
+            print(my_ast)
+            print(my_ast.pretty_print())
+            # print(transform_ast_string(my_ast))
+
 if __name__ == "__main__":
     if len(sys.argv) == 2:
         file_path = sys.argv[1]
