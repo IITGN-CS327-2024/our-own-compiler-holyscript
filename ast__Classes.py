@@ -1,8 +1,8 @@
 from typing import Union, List
 import sys
 from dataclasses import dataclass
-from lark import Lark, ast_utils, Transformer, v_args
-from lark.tree import Meta
+from lark import Lark, ast_utils, Transformer, v_args, Tree
+from lark.tree import Meta, Tree
 
 class ASTNodeMeta(type):
     def __new__(mcs, name, bases, dct):
@@ -16,6 +16,28 @@ class ASTNodeMeta(type):
 class ASTNode(metaclass=ASTNodeMeta):
     def pretty_print(self, indent=0):
         raise NotImplementedError("Subclasses should implement pretty_print")
+    
+class MemberAccessExpression(ASTNode):
+    def __init__(self, object_expr, operation=None, index=None):
+        self.object_expr = object_expr  # The object being accessed (e.g., array, list, tuple)
+        self.operation = operation      # The operation (e.g., 'head', 'tail') or attribute being accessed
+        self.index = index              # The index if it's an indexing operation
+
+    def pretty_print(self, indent=0):
+        base_indent = " " * indent
+        parts = [f"{base_indent}MemberAccessExpression:"]
+        parts.append(self.object_expr.pretty_print(indent + 2))
+        if self.operation:
+            parts.append(f"{base_indent}  Operation: {self.operation}")
+        if self.index:
+            parts.append(f"{base_indent}  Index: {self.index.pretty_print(indent + 2)}")
+        return "\n".join(parts)
+
+    def __repr__(self):
+        return f"MemberAccessExpression({repr(self.object_expr)}, operation={repr(self.operation)}, index={repr(self.index)})"
+
+
+
 
 class IntegerLiteral(ASTNode):
     def __init__(self, value):
@@ -56,10 +78,22 @@ class VariableDeclaration(ASTNode):
         return f"VariableDeclaration({self.declaration_specifier}, {self.assignment_expression})"
     
     def pretty_print(self, indent=0):
-        indent_str = ' ' * indent
-        return f"{indent_str}VariableDeclaration:\n" + \
-               f"{self.declaration_specifier.pretty_print(indent + 2)}\n" + \
-               f"{self.assignment_expression.pretty_print(indent + 2)}"
+        # Initialize the output string
+        output = " " * indent + "VariableDeclaration:\n"
+
+        # Check if declaration_specifier is not None before printing
+        if self.declaration_specifier:
+            output += self.declaration_specifier.pretty_print(indent + 2) + "\n"
+        else:
+            output += " " * (indent + 2) + "No Declaration Specifier\n"
+
+        # Check if assignment_expression is not None before printing
+        if self.assignment_expression:
+            output += self.assignment_expression.pretty_print(indent + 2)
+        else:
+            output += " " * (indent + 2) + "No Assignment Expression\n"
+
+        return output
 
 
 class IntLiteral(ASTNode):
@@ -295,11 +329,25 @@ class CompoundStatement(ASTNode):
         self.declarations = declarations
         self.statements = statements
     def pretty_print(self, indent=0):
-        indent_str = ' ' * indent
-        declarations_str = '\n'.join(decl.pretty_print(indent + 2) for decl in self.declarations)
-        statements_str = '\n'.join(stmt.pretty_print(indent + 2) for stmt in self.statements)
-        return f"{indent_str}CompoundStatement:\n" + \
-               f"{declarations_str}\n{statements_str}"
+        ind = '    ' * indent
+        result = ind + "{\n"
+        
+        # Handling declarations if any
+        for decl in self.declarations:
+            if hasattr(decl, 'pretty_print'):
+                result += decl.pretty_print(indent + 1) + "\n"
+            else:
+                result += ind + "    # Declaration without pretty_print\n"
+        
+        # Handling statements
+        for stmt in self.statements:
+            if hasattr(stmt, 'pretty_print'):
+                result += stmt.pretty_print(indent + 1) + "\n"
+            else:
+                result += ind + "    # Statement without pretty_print\n"
+
+        result += ind + "}"
+        return result
     def __repr__(self):
         declarations_str = ', '.join(repr(decl) for decl in self.declarations)
         statements_str = ', '.join(repr(stmt) for stmt in self.statements)
@@ -328,9 +376,28 @@ class ForLoop(ASTNode):
         self.condition = condition
         self.update = update
         self.body = body
-        
+
     def __repr__(self):
         return f"ForLoop({repr(self.init)}, {repr(self.condition)}, {repr(self.update)}, {repr(self.body)})"
+
+    def pretty_print(self, indent=0):
+        indent_str = ' ' * indent
+        deeper_indent_str = ' ' * (indent + 4)
+
+        init_str = (self.init.pretty_print(indent + 4) if hasattr(self.init, 'pretty_print') else str(self.init))
+        condition_str = (self.condition.pretty_print(indent + 4) if hasattr(self.condition, 'pretty_print') else str(self.condition))
+        update_str = (self.update.pretty_print(indent + 4) if hasattr(self.update, 'pretty_print') else str(self.update))
+        body_str = (self.body.pretty_print(indent + 4) if hasattr(self.body, 'pretty_print') else str(self.body))
+
+        pretty_str = (
+            f"{indent_str}ForLoop:\n"
+            f"{deeper_indent_str}Init:\n{init_str}\n"
+            f"{deeper_indent_str}Condition:\n{condition_str}\n"
+            f"{deeper_indent_str}Update:\n{update_str}\n"
+            f"{deeper_indent_str}Body:\n{body_str}"
+        )
+        return pretty_str
+
     
 class CharLiteral(ASTNode):
     def __init__(self, value):
@@ -342,6 +409,21 @@ class CharLiteral(ASTNode):
     def __repr__(self):
         return f'CharLiteral({repr(self.value)})'
 
+class MultiplicativeExpression(ASTNode):
+    def __init__(self, left, operator, right):
+        self.left = left
+        self.operator = operator
+        self.right = right
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.left}, '{self.operator}', {self.right})"
+
+    def pretty_print(self, indent=0):
+        indent_str = ' ' * indent
+        left_str = self.left.pretty_print(indent + 2) if hasattr(self.left, 'pretty_print') else str(self.left)
+        right_str = self.right.pretty_print(indent + 2) if hasattr(self.right, 'pretty_print') else str(self.right)
+        return f"{indent_str}{self.__class__.__name__}:\n{left_str}\n{indent_str}Operator: {self.operator}\n{right_str}"
+
 
 class IfStatement(ASTNode):
     def __init__(self, condition: ASTNode, true_branch: ASTNode, false_branch: Union[ASTNode, None]):
@@ -349,12 +431,21 @@ class IfStatement(ASTNode):
         self.true_branch = true_branch
         self.false_branch = false_branch
     def pretty_print(self, indent=0):
-        indent_str = ' ' * indent
-        true_branch_str = self.true_branch.pretty_print(indent + 2)
-        false_branch_str = self.false_branch.pretty_print(indent + 2) if self.false_branch else ''
-        return f"{indent_str}IfStatement:\n" + \
-               self.condition.pretty_print(indent + 2) + "\n" + \
-               f"{true_branch_str}\n{false_branch_str}"
+        ind = '    ' * indent
+        result = ind + "if ("
+        # Check if condition is a Lark Tree and handle it appropriately
+        if isinstance(self.condition, Tree):
+            # Handling Tree objects simply as a placeholder; you might need to process them
+            result += "Complex Condition Processed for Display"
+        else:
+            result += self.condition.pretty_print(0)
+        result += ") {\n"
+        result += self.true_branch.pretty_print(indent + 1) + "\n"
+        if self.false_branch:
+            result += ind + "} else {\n"
+            result += self.false_branch.pretty_print(indent + 1) + "\n"
+        result += ind + "}"
+        return result
     def __repr__(self):
         false_branch_str = repr(self.false_branch) if self.false_branch else "None"
         return f"IfStatement({repr(self.condition)}, {repr(self.true_branch)}, {false_branch_str})"
@@ -364,15 +455,15 @@ class DoWhileLoop(ASTNode):
         self.body = body
         self.condition = condition
 
+    def __repr__(self):
+        return f"DoWhileLoop(body={repr(self.body)}, condition={repr(self.condition)})"
+
     def pretty_print(self, indent=0):
         indent_str = ' ' * indent
         body_str = self.body.pretty_print(indent + 2)
-        return f"{indent_str}DoWhileLoop:\n" + \
-               body_str + "\n" + \
-               self.condition.pretty_print(indent + 2)
+        condition_str = self.condition.pretty_print(indent + 2)
+        return f"{indent_str}DoWhileLoop:\n{indent_str}  Body:\n{body_str}\n{indent_str}  Condition:\n{condition_str}"
 
-    def __repr__(self):
-        return f"DoWhileLoop({repr(self.body)}, {repr(self.condition)})"
     
 class WhileLoop(ASTNode):
     def __init__(self, condition: ASTNode, body: ASTNode):
@@ -394,13 +485,17 @@ class FunctionDefinition(ASTNode):
         self.parameters = parameters
         self.body = body
     def pretty_print(self, indent=0):
-        indent_str = ' ' * indent
-        params_str = ', '.join([p.pretty_print(0) for p in self.parameters])
-        body_str = '\n'.join([stmt.pretty_print(indent + 4) for stmt in self.body])
-        return f"{indent_str}FunctionDefinition: {self.name}\n" + \
-               f"{indent_str}    Return Type: {self.return_type}\n" + \
-               f"{indent_str}    Parameters: {params_str}\n" + \
-               f"{indent_str}    Body:\n{body_str}"
+        # Adjusting indentation for better readability
+        ind = '    ' * indent
+        # Print return type and function name
+        result = f"{ind}{self.return_type.type_keyword} {self.name.value}("
+        # Handle parameters
+        params_str = ', '.join(f"{ptype} {pname}" for ptype, pname in self.parameters)
+        result += params_str + ") {\n"
+        # Print the function body using its own pretty_print method
+        result += self.body.pretty_print(indent + 1) + "\n"
+        result += ind + "}"
+        return result
     def __repr__(self):
         parameters_str = ', '.join(f"{repr(param_type)} {param_name}" for param_type, param_name in self.parameters)
         return f"FunctionDefinition({repr(self.return_type)}, '{self.name}', [{parameters_str}], {repr(self.body)})"
@@ -488,16 +583,18 @@ class ListComprehension(ASTNode):
         return f"ListComprehension({repr(self.declaration)}, {condition_str}, {repr(self.body)})"
 
 class JumpStatement(ASTNode):
-    def __init__(self, keyword: str, expression: Union[None, ASTNode] = None):
+    def __init__(self, keyword, expression=None):
         self.keyword = keyword
         self.expression = expression
+
+    def __repr__(self):
+        return f"JumpStatement(keyword='{self.keyword}', expression={repr(self.expression)})"
+
     def pretty_print(self, indent=0):
         indent_str = ' ' * indent
-        expression_str = f": {self.expression.pretty_print(indent)}" if self.expression else ""
-        return f"{indent_str}JumpStatement: {self.keyword}{expression_str}"
-    def __repr__(self):
-        expression_str = repr(self.expression) if self.expression else "None"
-        return f"JumpStatement('{self.keyword}', {expression_str})"
+        expr_str = self.expression.pretty_print(indent + 2) if self.expression else ""
+        return f"{indent_str}JumpStatement: {self.keyword}\n{expr_str}"
+
 
 
 # In ast__Classes.py
@@ -506,7 +603,10 @@ class PreachStatement(ASTNode):
         self.expression = expression
 
     def pretty_print(self, indent=0):
-        return f'{" " * indent}PreachStatement(expression={self.expression.pretty_print(indent + 2)})'
+        expression_str = (self.expression.pretty_print(indent + 2)
+                          if isinstance(self.expression, ASTNode)
+                          else repr(self.expression))
+        return f'{" " * indent}PreachStatement(expression={expression_str})'
 
     def __repr__(self):
         return f'PreachStatement({repr(self.expression)})'
@@ -558,20 +658,20 @@ class TypeSpecifier(ASTNode):
         return f"{indent_str}TypeSpecifier: {self.type_keyword}"
 
 class TupleDeclaration(ASTNode):
-    def __init__(self, identifier: str, assignment_expression: ASTNode, value_list: List[ASTNode]):
+    def __init__(self, identifier, values):
         self.identifier = identifier
-        self.assignment_expression = assignment_expression
-        self.value_list = value_list
+        self.values = values
+
     def pretty_print(self, indent=0):
         indent_str = ' ' * indent
-        values_str = ',\n'.join([val.pretty_print(indent + 4) for val in self.value_list])
-        return f"{indent_str}TupleDeclaration:\n" + \
-               self.identifier.pretty_print(indent + 4) + "\n" + \
-               self.assignment_expression.pretty_print(indent + 4) + "\n" + \
-               f"{indent_str}    Values:\n{values_str}"
+        values_str = ',\n'.join(value.pretty_print(indent + 2) for value in self.values)
+        return f"{indent_str}TupleDeclaration:\n{indent_str + '  '}Identifier: {self.identifier.pretty_print(0)}\n{indent_str + '  '}Values:\n{values_str}"
+
     def __repr__(self):
-        value_list_str = ', '.join(repr(value) for value in self.value_list)
-        return f"TupleDeclaration('{self.identifier}', {repr(self.assignment_expression)}, [{value_list_str}])"
+        values_repr = ', '.join(repr(value) for value in self.values)
+        return f"TupleDeclaration({repr(self.identifier)}, [{values_repr}])"
+
+
 
 class ListDeclaration(ASTNode):
     def __init__(self, identifier: str, value_list: List[ASTNode]):
@@ -595,11 +695,11 @@ class ArrayDeclaration(ASTNode):
         self.expressions = expressions
     def pretty_print(self, indent=0):
         indent_str = ' ' * indent
-        expressions_str = ',\n'.join([expr.pretty_print(indent + 4) for expr in self.expressions])
+        expressions_str = ', '.join([expr.pretty_print(indent + 4) for expr in self.expressions])
         return f"{indent_str}ArrayDeclaration:\n" + \
-               self.type_specifier.pretty_print(indent + 4) + "\n" + \
-               self.identifier.pretty_print(indent + 4) + "\n" + \
-               f"{indent_str}    Expressions:\n{expressions_str}"
+               f"{indent_str + '  '}Type Specifier: {self.type_specifier.pretty_print(indent + 4)}\n" + \
+               f"{indent_str + '  '}Identifier: {self.identifier}\n" + \
+               f"{indent_str + '  '}Expressions: {expressions_str}\n"
     def __repr__(self):
         expressions_str = ', '.join(repr(expr) for expr in self.expressions)
         return f"ArrayDeclaration({repr(self.type_specifier)}, '{self.identifier}', [{expressions_str}])"
