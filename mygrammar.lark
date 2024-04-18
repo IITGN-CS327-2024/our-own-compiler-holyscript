@@ -130,7 +130,10 @@ function_body: "Symbols(value='" LBRACE "')" (declaration | statement)* "Symbols
 
 function_call: identifier "Symbols(value='" LPAREN "')" assignment_expression value_list "Symbols(value='" RPAREN "')"
 
-array_declaration: "TypeKeyword(value='array')" "Operator(value='<')" type_specifier "Operator(value='>')" identifier "Operator(value='=')" "Symbols(value='" LBRACKET "')" expression ("Symbols(value=',')" expression)* "Symbols(value='" RBRACKET "')" "EndOfStatement(value=';')"
+
+
+array_declaration: "TypeKeyword(value='array')" "Operator(value='<')" type_specifier "Operator(value='>')" identifier "Operator(value='=')" "Symbols(value='" LBRACKET "')" (expression ("Symbols(value=',')" expression)*)? "Symbols(value='" RBRACKET "')" "EndOfStatement(value=';')"
+
 
 LBRACE: "{"
 RBRACE: "}"
