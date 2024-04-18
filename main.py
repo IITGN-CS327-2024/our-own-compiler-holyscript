@@ -52,10 +52,10 @@ def run_script(text, file_path):
             # print(values)
             script = (" ".join(values))
             tree = parser.parse(script)
-            # print(tree.pretty())
+            print(tree.pretty())
             my_ast = transformer.transform(tree)
             print(my_ast)
-            print(my_ast.pretty_print())
+            # print(my_ast.pretty_print())
             # print(transform_ast_string(my_ast))
 
 def is_holy_script_file(file_path):
@@ -88,10 +88,10 @@ Type 'exit' to depart.
             # print(" ".join(values))
             script = (" ".join(values))
             tree = parser.parse(script)
-            # print(tree.pretty())
+            print(tree.pretty())
             my_ast = transformer.transform(tree)
             print(my_ast)
-            print(my_ast.pretty_print())
+            # print(my_ast.pretty_print())
             # print(transform_ast_string(my_ast))
 
 if __name__ == "__main__":
