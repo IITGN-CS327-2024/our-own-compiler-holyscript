@@ -204,9 +204,9 @@ string: "StringToken(value=" SINGLE_QUOTE_STR ")"
 char: "CharToken(value=" CHAR_SEQUENCE ")"
 SINGLE_QUOTE_STR: /'([^'\\]|\\.)*'/
 CHAR_SEQUENCE: "'" ( /\\[nrt'"\\]/ | /[^'\\]/) "'"
-boolean: "Bool(value='" TRUE "')"
-       | "Bool(value='" FALSE "')"
+boolean: "Bool(value=" BOOLEAN ")"
 
+BOOLEAN: "True" | "False"
 %import common.LETTER
 %import common.NUMBER
 %import common.CNAME

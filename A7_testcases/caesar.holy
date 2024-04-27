@@ -1,0 +1,15 @@
+summon HolyScript
+
+    invoke void caesarEncrypt(int[] plaintext, int plaintextLength, int key) {
+        chant (int i = 0; i < plaintextLength; i++) {
+            plaintext[i] = (plaintext[i] + key) % 26;
+        }
+    }
+
+    invoke void caesarDecrypt(int[] plaintext, int plaintextLength, int key) {
+        chant (int i = 0; i < plaintextLength; i++) {
+            plaintext[i] = (plaintext[i] - key + 26) % 26;
+        }
+    }
+
+doom

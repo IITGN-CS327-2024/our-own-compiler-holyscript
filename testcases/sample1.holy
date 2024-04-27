@@ -1,6 +1,7 @@
 summon HolyScript
     int x = 10; // variable declaration
-    belief (x > 0) {  
+    belief (x > 6) {  
+        int a = 4;
         preach("x is positive");
     } else {
         preach("x is not positive");
