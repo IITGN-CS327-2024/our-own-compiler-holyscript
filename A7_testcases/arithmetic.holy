@@ -20,4 +20,8 @@ summon HolyScript
         deliver x / y;
     }
 
+    invoke int rem(int x, int y) {
+        deliver x % y;
+    }
+
 doom
